@@ -1,47 +1,21 @@
-# ============================================
-# LoLamBenhAn API - Bun + Elysia
-# ============================================
-
-# ---- Base ----
-FROM oven/bun:1-alpine AS base
-RUN apk add --no-cache curl
+# File: apps/api/Dockerfile
+FROM oven/bun:1 AS builder
 WORKDIR /app
+RUN bun add -g turbo
+COPY . .
+# Lọc riêng phần của Elysia (giả sử tên app là "api")
+RUN turbo prune --scope=@lolambenhan/api --docker
 
-# ---- Install Dependencies ----
-FROM base AS install
-COPY package.json bun.lock ./
-COPY packages/shared ./packages/shared
-COPY apps/api/package.json ./apps/api/
-
+FROM oven/bun:1 AS installer
+WORKDIR /app
+COPY --from=builder /app/out/json/ .
+COPY --from=builder /app/out/bun.lock ./bun.lock
 RUN bun install
+COPY --from=builder /app/out/full/ .
 
-# ---- Build ----
-FROM base AS build
-COPY --from=install /app/node_modules ./node_modules
-COPY --from=install /app/packages/shared ./packages/shared
-COPY apps/api ./apps/api
-COPY package.json bun.lock ./
-
-WORKDIR /app/apps/api
-RUN bun run db:generate
-
-# ---- Production ----
-FROM oven/bun:1-alpine AS production
+FROM oven/bun:1 AS runner
 WORKDIR /app
-
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/packages ./packages
-COPY --from=build /app/apps/api ./apps/api
-COPY --from=build /app/package.json ./
-
-WORKDIR /app/apps/api
-
-ENV NODE_ENV=production
-ENV PORT=3002
-
+COPY --from=installer /app .
 EXPOSE 3002
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:3002/health || exit 1
-
+# Chạy trực tiếp file entrypoint của Elysia
 CMD ["bun", "run", "start"]
