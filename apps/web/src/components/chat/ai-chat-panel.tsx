@@ -1,0 +1,295 @@
+"use client";
+
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Send, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
+
+interface ChatMessage {
+  id: string;
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
+let messageIdCounter = 0;
+const generateMessageId = () => `msg-${Date.now()}-${++messageIdCounter}`;
+
+const SYSTEM_PROMPT = `
+Bạn tên là LÒ. Bạn là người máy hỗ trợ hoàn thành bệnh án.
+Mình có thể tìm lý thuyết bệnh học, hỗ trợ biện luận và đưa ra ý kiến để giúp bạn hoàn thành bệnh án tốt nhất.
+`;
+
+const GLM_API_KEY = process.env.NEXT_PUBLIC_GLM_API_KEY || "";
+
+interface AiChatPanelProps {
+  formContext?: { tomtat: string; chandoanso: string };
+  apiUrl?: string;
+  apiKey?: string;
+}
+
+export function AiChatPanel({
+  formContext,
+  apiUrl = "https://api.z.ai/api/coding/paas/v4/chat/completions",
+  apiKey = GLM_API_KEY,
+}: AiChatPanelProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { id: generateMessageId(), role: "system", content: SYSTEM_PROMPT },
+  ]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [streamingMessage, setStreamingMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, streamingMessage]);
+
+  const sendMessage = useCallback(async () => {
+    const text = input.trim();
+    if (!text || isLoading) return;
+
+    if (!apiKey) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: generateMessageId(),
+          role: "assistant",
+          content:
+            "⚠️ Lỗi: Chưa cấu hình API Key. Vui lòng thêm NEXT_PUBLIC_GLM_API_KEY vào file .env.local",
+        },
+      ]);
+      return;
+    }
+
+    let userContent = text;
+    if (formContext?.tomtat || formContext?.chandoanso) {
+      userContent = `
+DỮ LIỆU TỪ FORM (tham khảo khi trả lời):
+- Tóm tắt bệnh án: ${formContext.tomtat || "(chưa có)"}
+- Chẩn đoán sơ bộ: ${formContext.chandoanso || "(chưa có)"}
+
+Câu hỏi: ${text}
+`.trim();
+    }
+
+    setMessages((prev) => [...prev, { id: generateMessageId(), role: "user", content: text }]);
+    setInput("");
+    setIsLoading(true);
+    setStreamingMessage("");
+
+    // Create new AbortController for this request
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept-Language": "vi-VN,vi",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "glm-4.7",
+          messages: [...messages, { role: "user", content: userContent }],
+          temperature: 1.0,
+          stream: true,
+        }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error("Không thể đọc response stream");
+      }
+
+      let fullContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed?.choices?.[0]?.delta?.content || "";
+              if (content) {
+                fullContent += content;
+                setStreamingMessage(fullContent);
+              }
+            } catch {
+              // Skip invalid JSON
+            }
+          }
+        }
+      }
+
+      // Add complete message to history
+      setMessages((prev) => [
+        ...prev,
+        { id: generateMessageId(), role: "assistant", content: fullContent || "Bot không trả lời." },
+      ]);
+      setStreamingMessage("");
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        // Request was cancelled, don't show error
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: generateMessageId(),
+            role: "assistant",
+            content: `⚠️ Lỗi: ${error instanceof Error ? error.message : String(error)}`,
+          },
+        ]);
+      }
+    } finally {
+      setIsLoading(false);
+      abortControllerRef.current = null;
+    }
+  }, [input, formContext, messages, apiKey, apiUrl, isLoading]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  return (
+    <>
+      {/* Toggle Button */}
+      <Button
+        variant={isOpen ? "default" : "outline"}
+        size="sm"
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed bottom-4 right-4 z-40 shadow-lg"
+      >
+        💬 Chat
+      </Button>
+
+      {/* Chat Panel */}
+      {isOpen && (
+        <div className="fixed bottom-16 right-4 z-40 w-80 h-96 bg-background rounded-lg shadow-xl border flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b px-4 py-2 bg-muted rounded-t-lg">
+            <span className="font-medium text-foreground">
+              💬 Biện luận cùng bot Lò
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setIsOpen(false);
+                abortControllerRef.current?.abort();
+              }}
+              className="h-6 w-6"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-auto p-4 space-y-3">
+            {messages
+              .filter((m) => m.role !== "system")
+              .map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`rounded-lg px-3 py-2 ${
+                    msg.role === "user"
+                      ? "bg-primary text-primary-foreground ml-8"
+                      : "bg-muted text-foreground mr-8"
+                  }`}
+                >
+                  {msg.role === "assistant" ? (
+                    <div
+                      className="prose prose-sm max-w-none dark:prose-invert"
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(marked.parse(msg.content) as string),
+                      }}
+                    />
+                  ) : (
+                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  )}
+                </div>
+              ))}
+            {/* Streaming message */}
+            {streamingMessage && (
+              <div className="bg-muted rounded-lg px-3 py-2 mr-8">
+                <div
+                  className="prose prose-sm max-w-none dark:prose-invert"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(marked.parse(streamingMessage) as string),
+                  }}
+                />
+                <span className="inline-flex gap-1 ml-2">
+                  <span className="animate-bounce">●</span>
+                  <span className="animate-bounce delay-100">●</span>
+                  <span className="animate-bounce delay-200">●</span>
+                </span>
+              </div>
+            )}
+            {isLoading && !streamingMessage && (
+              <div className="bg-muted rounded-lg px-3 py-2 mr-8">
+                <span className="text-sm text-foreground">Đang soạn tin</span>
+                <span className="inline-flex gap-1 ml-2">
+                  <span className="animate-bounce">●</span>
+                  <span className="animate-bounce delay-100">●</span>
+                  <span className="animate-bounce delay-200">●</span>
+                </span>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          <div className="border-t p-3 flex gap-2 rounded-b-lg">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Nhập tin nhắn... (Shift+Enter để xuống dòng)"
+              disabled={isLoading}
+            />
+            <Button
+              size="icon"
+              onClick={sendMessage}
+              disabled={isLoading || !input.trim()}
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
