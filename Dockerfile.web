@@ -7,36 +7,26 @@ FROM oven/bun:1-alpine AS base
 RUN apk add --no-cache curl
 WORKDIR /app
 
-# ---- Dependencies ----
-FROM base AS deps
-COPY package.json bun.lockb ./
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/config/package.json ./packages/config/
-COPY packages/ui/package.json ./packages/ui/
+# ---- Install Dependencies ----
+FROM base AS install
+COPY package.json bun.lock ./
+COPY packages/shared ./packages/shared
+COPY packages/ui ./packages/ui
 COPY apps/web/package.json ./apps/web/
 
-RUN bun install --frozen-lockfile
+RUN bun install
 
-# ---- Builder ----
+# ---- Build ----
 FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
-COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
-COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
-
-COPY packages/shared ./packages/shared
-COPY packages/config ./packages/config
-COPY packages/ui ./packages/ui
+COPY --from=install /app/node_modules ./node_modules
+COPY --from=install /app/packages ./packages
 COPY apps/web ./apps/web
-COPY package.json bun.lockb tsconfig.json ./
+COPY package.json bun.lock ./
 
 WORKDIR /app/apps/web
 
-# Build argument for API URL
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 

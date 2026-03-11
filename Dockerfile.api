@@ -8,38 +8,31 @@ RUN apk add --no-cache curl
 WORKDIR /app
 
 # ---- Install Dependencies ----
-FROM base AS deps
-COPY package.json bun.lockb ./
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/config/package.json ./packages/config/
+FROM base AS install
+COPY package.json bun.lock ./
+COPY packages/shared ./packages/shared
 COPY apps/api/package.json ./apps/api/
 
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # ---- Build ----
 FROM base AS build
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
-COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
-COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
-
-COPY packages/shared ./packages/shared
-COPY packages/config ./packages/config
+COPY --from=install /app/node_modules ./node_modules
+COPY --from=install /app/packages/shared ./packages/shared
 COPY apps/api ./apps/api
-COPY package.json bun.lockb tsconfig.json ./
+COPY package.json bun.lock ./
 
 WORKDIR /app/apps/api
 RUN bun run db:generate
 
 # ---- Production ----
-FROM base AS production
+FROM oven/bun:1-alpine AS production
 WORKDIR /app
 
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/apps/api ./apps/api
 COPY --from=build /app/package.json ./
-COPY --from=build /app/tsconfig.json ./
 
 WORKDIR /app/apps/api
 
