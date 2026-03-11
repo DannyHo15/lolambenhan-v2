@@ -1,0 +1,45 @@
+{
+  "name": "lolambenhan-v2",
+  "version": "2.0.0",
+  "private": true,
+  "packageManager": "bun@1.2.5",
+  "description": "LoLamBenhAn - Ứng dụng bệnh án điện tử với kiến trúc monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:generate": "cd apps/api && bun run db:generate",
+    "db:migrate": "cd apps/api && bun run db:migrate",
+    "db:push": "cd apps/api && bun run db:push",
+    "db:studio": "cd apps/api && bun run db:studio"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.8",
+    "@types/node": "^25.2.0",
+    "drizzle-kit": "^0.31.8",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
+  "dependencies": {
+    "@elysiajs/bearer": "^1.4.3",
+    "@elysiajs/cors": "^1.4.1",
+    "@elysiajs/swagger": "^1.3.1",
+    "cloudinary": "^2.9.0",
+    "drizzle-orm": "^0.45.1",
+    "elysia": "^1.4.22",
+    "google-auth-library": "^10.5.0",
+    "postgres": "^3.4.8"
+  }
+}

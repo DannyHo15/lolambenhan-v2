@@ -1,0 +1,971 @@
+{
+  "id": "tien-phau-v1",
+  "name": "Phiếu Giám Định Tiền Phẫu Thuật",
+  "specialty": "tien-phau",
+  "version": "1.0.0",
+  "description": "Phiếu đánh giá sức khỏe trước phẫu thuật",
+  "status": "active",
+  "tags": ["tien-phau", "phau-thuat", "giam-dinh"],
+  "metadata": {
+    "createdBy": "admin",
+    "createdAt": "2025-01-01T00:00:00Z",
+    "department": "surgery",
+    "language": "vi"
+  },
+  "sections": [
+    {
+      "id": "surgery-info",
+      "name": "Thông Tin Phẫu Thuật",
+      "order": 1,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "patient-code",
+          "name": "patientCode",
+          "label": "Mã Bệnh Nhân",
+          "type": "text",
+          "order": 1,
+          "required": true,
+          "readonly": true,
+          "width": "half"
+        },
+        {
+          "id": "full-name",
+          "name": "fullName",
+          "label": "Họ và Tên",
+          "type": "text",
+          "order": 2,
+          "required": true,
+          "readonly": true,
+          "width": "half"
+        },
+        {
+          "id": "age",
+          "name": "age",
+          "label": "Tuổi",
+          "type": "number",
+          "order": 3,
+          "required": true,
+          "readonly": true,
+          "width": "third",
+          "min": 0,
+          "max": 150
+        },
+        {
+          "id": "gender",
+          "name": "gender",
+          "label": "Giới Tính",
+          "type": "text",
+          "order": 4,
+          "required": true,
+          "readonly": true,
+          "width": "third"
+        },
+        {
+          "id": "scheduled-date",
+          "name": "scheduledDate",
+          "label": "Ngày Định Phẫu",
+          "type": "date",
+          "order": 5,
+          "required": true,
+          "width": "third",
+          "dateFormat": "DD/MM/YYYY",
+          "minDate": "{{today}}"
+        },
+        {
+          "id": "surgery-type",
+          "name": "surgeryType",
+          "label": "Loại Phẫu Thuật",
+          "type": "select",
+          "order": 6,
+          "required": true,
+          "width": "half",
+          "options": [
+            { "value": "minor", "label": "Phẫu thuật nhỏ (độ 1-2)" },
+            { "value": "intermediate", "label": "Phẫu thuật trung bình (độ 3)" },
+            { "value": "major", "label": "Phẫu thuật lớn (độ 4)" }
+          ]
+        },
+        {
+          "id": "anesthesia-type",
+          "name": "anesthesiaType",
+          "label": "Phương Pháp Vê Gáp",
+          "type": "select",
+          "order": 7,
+          "required": true,
+          "width": "half",
+          "options": [
+            { "value": "local", "label": "Gia tê tại chỗ" },
+            { "value": "regional", "label": "Gia tê vùng" },
+            { "value": "spinal", "label": "Gia tê sống cột" },
+            { "value": "general", "label": "Gia tê toàn thân" },
+            { "value": "combined", "label": "Kết hợp" }
+          ]
+        },
+        {
+          "id": "surgery-name",
+          "name": "surgeryName",
+          "label": "Tên Phẫu Thuật",
+          "type": "text",
+          "order": 8,
+          "required": true,
+          "width": "full",
+          "placeholder": "Nhập tên phẫu thuật chi tiết"
+        },
+        {
+          "id": "surgeon",
+          "name": "surgeon",
+          "label": "Bác Sĩ Phẫu Thuật",
+          "type": "text",
+          "order": 9,
+          "required": true,
+          "width": "half",
+          "readonly": true
+        },
+        {
+          "id": "assistant",
+          "name": "assistant",
+          "label": "Bác Sĩ Phụ Trách",
+          "type": "text",
+          "order": 10,
+          "required": false,
+          "width": "half"
+        }
+      ]
+    },
+    {
+      "id": "asa-classification",
+      "name": "Phân Loại ASA",
+      "order": 2,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "asa-class",
+          "name": "asaClass",
+          "label": "Độ ASA",
+          "type": "radio",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "options": [
+            {
+              "value": "asa1",
+              "label": "ASA I: Bệnh nhân khỏe mạnh, không có bệnh lý đi kèm"
+            },
+            {
+              "value": "asa2",
+              "label": "ASA II: Bệnh lý đi kèm nhẹ, không hạn chế sinh hoạt"
+            },
+            {
+              "value": "asa3",
+              "label": "ASA III: Bệnh lý đi kèm nặng, hạn chế sinh hoạt"
+            },
+            {
+              "value": "asa4",
+              "label": "ASA IV: Bệnh lý đi kèm đe dọa tính mạng, phẫu thuật cấp cứu"
+            },
+            {
+              "value": "asa5",
+              "label": "ASA V: Bệnh nhân sắp chết, không mong sống dù phẫu thuật"
+            },
+            {
+              "value": "asa6",
+              "label": "ASA VI: Bệnh nhân đã chết não để lấy tạng"
+            }
+          ],
+          "columns": 1
+        },
+        {
+          "id": "asa-notes",
+          "name": "asaNotes",
+          "label": "Ghi Chú ASA",
+          "type": "textarea",
+          "order": 2,
+          "required": false,
+          "width": "full",
+          "maxLength": 500
+        }
+      ]
+    },
+    {
+      "id": "vital-signs",
+      "name": "Dấu Hiệu Sinh Tồn",
+      "order": 3,
+      "collapsible": true,
+      "fields": [
+        {
+          "id": "blood-pressure",
+          "name": "bloodPressure",
+          "label": "Huyết Áp (mmHg)",
+          "type": "text",
+          "order": 1,
+          "required": true,
+          "width": "third",
+          "placeholder": "120/80",
+          "pattern": "^\\d{2,3}\\/\\d{2,3}$",
+          "patternMessage": "Nhập theo định dạng: 120/80"
+        },
+        {
+          "id": "heart-rate",
+          "name": "heartRate",
+          "label": "Nhịp Tim (lần/phút)",
+          "type": "number",
+          "order": 2,
+          "required": true,
+          "width": "third",
+          "min": 40,
+          "max": 150,
+          "unit": "lần/phút"
+        },
+        {
+          "id": "temperature",
+          "name": "temperature",
+          "label": "Nhiệt Độ (°C)",
+          "type": "number",
+          "order": 3,
+          "required": true,
+          "width": "third",
+          "min": 35,
+          "max": 42,
+          "step": 0.1,
+          "unit": "°C"
+        },
+        {
+          "id": "respiratory-rate",
+          "name": "respiratoryRate",
+          "label": "Nhịp Thở (lần/phút)",
+          "type": "number",
+          "order": 4,
+          "required": true,
+          "width": "third",
+          "min": 8,
+          "max": 35,
+          "unit": "lần/phút"
+        },
+        {
+          "id": "spo2",
+          "name": "spo2",
+          "label": "SpO2 (%)",
+          "type": "number",
+          "order": 5,
+          "required": true,
+          "width": "third",
+          "min": 70,
+          "max": 100,
+          "unit": "%"
+        },
+        {
+          "id": "weight",
+          "name": "weight",
+          "label": "Cân Nặng (kg)",
+          "type": "number",
+          "order": 6,
+          "required": true,
+          "width": "third",
+          "min": 1,
+          "max": 300,
+          "step": 0.1,
+          "unit": "kg"
+        }
+      ]
+    },
+    {
+      "id": "cardiovascular-assessment",
+      "name": "Đánh Giá Tim Mạch",
+      "order": 4,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "heart-disease",
+          "name": "heartDisease",
+          "label": "Tiền Sử Bệnh Tim",
+          "type": "checkbox",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "multiple": true,
+          "columns": 2,
+          "options": [
+            { "value": "hypertension", "label": "Tăng huyết áp" },
+            { "value": "coronary", "label": "Bệnh động mạch vành" },
+            { "value": "arrhythmia", "label": "Rối loạn nhịp tim" },
+            { "value": "heart-failure", "label": "Suy tim" },
+            { "value": "valvular", "label": "Bệnh van tim" },
+            { "value": "mi", "label": "Đã nhồi máu cơ tim" },
+            { "value": "pacemaker", "label": "Máy tạo nhịp/Khử rung" },
+            { "value": "none", "label": "Không có" }
+          ]
+        },
+        {
+          "id": "nyha-class",
+          "name": "nyhaClass",
+          "label": "Phân Loại NYHA (nếu có suy tim)",
+          "type": "radio",
+          "order": 2,
+          "required": false,
+          "width": "full",
+          "conditionalDisplay": {
+            "operator": "OR",
+            "conditions": [
+              { "fieldId": "heartDisease", "operator": "contains", "value": "heart-failure" }
+            ]
+          },
+          "options": [
+            { "value": "nyha1", "label": "NYHA I: Không hạn chế hoạt động" },
+            { "value": "nyha2", "label": "NYHA II: Hạn chế nhẹ" },
+            { "value": "nyha3", "label": "NYHA III: Hạn chế nặng" },
+            { "value": "nyha4", "label": "NYHA IV: Không thể thực hiện bất kỳ hoạt động nào" }
+          ],
+          "columns": 1
+        },
+        {
+          "id": "cardiac-notes",
+          "name": "cardiacNotes",
+          "label": "Ghi Chú Tim Mạch",
+          "type": "textarea",
+          "order": 3,
+          "required": false,
+          "width": "full",
+          "maxLength": 500
+        }
+      ]
+    },
+    {
+      "id": "respiratory-assessment",
+      "name": "Đánh Giá Hô Hấp",
+      "order": 5,
+      "collapsible": true,
+      "fields": [
+        {
+          "id": "lung-disease",
+          "name": "lungDisease",
+          "label": "Bệnh Phổi",
+          "type": "checkbox",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "multiple": true,
+          "columns": 2,
+          "options": [
+            { "value": "asthma", "label": "Hen suyễn" },
+            { "value": "copd", "label": "COPD" },
+            { "value": "pneumonia", "label": "Viêm phổi" },
+            { "value": "tb", "label": "Lao" },
+            { "value": "sleep-apnea", "label": "Ngưng thở khi ngủ" },
+            { "value": "smoking", "label": "Hút thuốc lá" },
+            { "value": "none", "label": "Không có" }
+          ]
+        },
+        {
+          "id": "smoking-pack-years",
+          "name": "smokingPackYears",
+          "label": "Số Năm Hút Thuốc (pack-years)",
+          "type": "number",
+          "order": 2,
+          "required": false,
+          "width": "half",
+          "min": 0,
+          "conditionalDisplay": {
+            "operator": "OR",
+            "conditions": [
+              { "fieldId": "lungDisease", "operator": "contains", "value": "smoking" }
+            ]
+          }
+        },
+        {
+          "id": "respiratory-notes",
+          "name": "respiratoryNotes",
+          "label": "Ghi Chú Hô Hấp",
+          "type": "textarea",
+          "order": 3,
+          "required": false,
+          "width": "full",
+          "maxLength": 500
+        }
+      ]
+    },
+    {
+      "id": "labs",
+      "name": "Kết Quả Xét Nghiệm",
+      "order": 6,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "hemoglobin",
+          "name": "hemoglobin",
+          "label": "Hemoglobin (g/dL)",
+          "type": "number",
+          "order": 1,
+          "required": true,
+          "width": "quarter",
+          "min": 0,
+          "max": 20,
+          "step": 0.1,
+          "unit": "g/dL"
+        },
+        {
+          "id": "platelets",
+          "name": "platelets",
+          "label": "Tiểu cầu (G/L)",
+          "type": "number",
+          "order": 2,
+          "required": true,
+          "width": "quarter",
+          "min": 0,
+          "max": 1000,
+          "unit": "G/L"
+        },
+        {
+          "id": "inr",
+          "name": "inr",
+          "label": "INR",
+          "type": "number",
+          "order": 3,
+          "required": true,
+          "width": "quarter",
+          "min": 0.5,
+          "max": 10,
+          "step": 0.01
+        },
+        {
+          "id": "aptt",
+          "name": "aptt",
+          "label": "aPTT (giây)",
+          "type": "number",
+          "order": 4,
+          "required": true,
+          "width": "quarter",
+          "min": 10,
+          "max": 100,
+          "unit": "giây"
+        },
+        {
+          "id": "creatinine",
+          "name": "creatinine",
+          "label": "Creatinine (mg/dL)",
+          "type": "number",
+          "order": 5,
+          "required": true,
+          "width": "third",
+          "min": 0,
+          "max": 20,
+          "step": 0.01,
+          "unit": "mg/dL"
+        },
+        {
+          "id": "egfr",
+          "name": "egfr",
+          "label": "eGFR (mL/phút)",
+          "type": "number",
+          "order": 6,
+          "required": true,
+          "width": "third",
+          "min": 0,
+          "max": 200,
+          "unit": "mL/phút"
+        },
+        {
+          "id": "blood-sugar",
+          "name": "bloodSugar",
+          "label": "Đường Huyết (mg/dL)",
+          "type": "number",
+          "order": 7,
+          "required": true,
+          "width": "third",
+          "min": 0,
+          "max": 500,
+          "unit": "mg/dL"
+        },
+        {
+          "id": "electrolytes",
+          "name": "electrolytes",
+          "label": "Điện Giải",
+          "type": "textarea",
+          "order": 8,
+          "required": false,
+          "width": "full",
+          "placeholder": "Na+, K+, Cl-, HCO3-",
+          "maxLength": 200
+        },
+        {
+          "id": "other-labs",
+          "name": "otherLabs",
+          "label": "Xét Nghiệm Khác",
+          "type": "textarea",
+          "order": 9,
+          "required": false,
+          "width": "full",
+          "maxLength": 500
+        }
+      ]
+    },
+    {
+      "id": "imaging",
+      "name": "Chẩn Đoán Ảnh Học",
+      "order": 7,
+      "collapsible": true,
+      "fields": [
+        {
+          "id": "chest-xray",
+          "name": "chestXray",
+          "label": "X-quang Lồng Ngực",
+          "type": "select",
+          "order": 1,
+          "required": true,
+          "width": "half",
+          "options": [
+            { "value": "normal", "label": "Bình thường" },
+            { "value": "abnormal", "label": "Bất thường" },
+            { "value": "not-done", "label": "Chưa làm" }
+          ]
+        },
+        {
+          "id": "ecg",
+          "name": "ecg",
+          "label": "Điện Tâm Đồ",
+          "type": "select",
+          "order": 2,
+          "required": true,
+          "width": "half",
+          "options": [
+            { "value": "normal", "label": "Bình thường (NSR)" },
+            { "value": "abnormal", "label": "Bất thường" },
+            { "value": "not-done", "label": "Chưa làm" }
+          ]
+        },
+        {
+          "id": "echo",
+          "name": "echo",
+          "label": "Siêu Âm Tim",
+          "type": "select",
+          "order": 3,
+          "required": false,
+          "width": "half",
+          "options": [
+            { "value": "normal", "label": "Bình thường" },
+            { "value": "abnormal", "label": "Bất thường" },
+            { "value": "not-done", "label": "Chưa làm" }
+          ]
+        },
+        {
+          "id": "other-imaging",
+          "name": "otherImaging",
+          "label": "CĐAH Khác",
+          "type": "textarea",
+          "order": 4,
+          "required": false,
+          "width": "full",
+          "maxLength": 500
+        }
+      ]
+    },
+    {
+      "id": "airway-assessment",
+      "name": "Đánh Giá Đường Thở",
+      "order": 8,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "mallampati",
+          "name": "mallampati",
+          "label": "Phân Loại Mallampati",
+          "type": "radio",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "options": [
+            { "value": "class1", "label": "Class I: Thấy toàn bộ amiđan" },
+            { "value": "class2", "label": "Class II: Thấy phần lớn amiđan" },
+            { "value": "class3", "label": "Class III: Chỉ thấy đáy lưỡi" },
+            { "value": "class4", "label": "Class IV: Không thấy amiđan" }
+          ],
+          "columns": 2
+        },
+        {
+          "id": "mouth-opening",
+          "name": "mouthOpening",
+          "label": "Khoảng Cách Miệng (cm)",
+          "type": "number",
+          "order": 2,
+          "required": true,
+          "width": "third",
+          "min": 0,
+          "max": 10,
+          "step": 0.5,
+          "unit": "cm",
+          "placeholder": "Normal > 4cm"
+        },
+        {
+          "id": "thyromental-distance",
+          "name": "thyromentalDistance",
+          "label": "Khoảng Cách Cằm - Giáp (cm)",
+          "type": "number",
+          "order": 3,
+          "required": true,
+          "width": "third",
+          "min": 0,
+          "max": 10,
+          "step": 0.5,
+          "unit": "cm",
+          "placeholder": "Normal > 6.5cm"
+        },
+        {
+          "id": "neck-mobility",
+          "name": "neckMobility",
+          "label": "Độ Linh Hoạt Cổ",
+          "type": "select",
+          "order": 4,
+          "required": true,
+          "width": "third",
+          "options": [
+            { "value": "normal", "label": "Bình thường (>90°)" },
+            { "value": "limited", "label": "Hạn chế" },
+            { "value": "fixed", "label": "Cứng" }
+          ]
+        },
+        {
+          "id": "difficult-airway-predictors",
+          "name": "difficultAirwayPredictors",
+          "label": "Yếu Tố Dự Báo Đường Thở Khó",
+          "type": "checkbox",
+          "order": 5,
+          "required": true,
+          "width": "full",
+          "multiple": true,
+          "columns": 2,
+          "options": [
+            { "value": "obesity", "label": "Béo phì (BMI > 30)" },
+            { "value": "beard", "label": "Râu quăn nát" },
+            { "value": "edentulous", "label": "Mất răng" },
+            { "value": "micrognathia", "label": "Hàm nhỏ" },
+            { "value": "protruding-teeth", "label": "Răng hô" },
+            { "value": "limited-neck", "label": "Hạn chế vận động cổ" },
+            { "value": "tumor", "label": "Khối u cổ/họng" },
+            { "value": "previous-difficult", "label": "Đ từng khó soi" }
+          ]
+        },
+        {
+          "id": "airway-plan",
+          "name": "airwayPlan",
+          "label": "Kế Hoách Quản Lý Đường Thở",
+          "type": "textarea",
+          "order": 6,
+          "required": true,
+          "width": "full",
+          "maxLength": 500,
+          "placeholder": "Kế hoạch quản lý đường thở dự phòng"
+        }
+      ]
+    },
+    {
+      "id": "risk-assessment",
+      "name": "Đánh Giá Nguy Cơ",
+      "order": 9,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "risk-factors",
+          "name": "riskFactors",
+          "label": "Yếu Tố Nguy Cơ",
+          "type": "checkbox",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "multiple": true,
+          "columns": 2,
+          "options": [
+            { "value": "obesity", "label": "Béo phì" },
+            { "value": "diabetes", "label": "Tiểu đường" },
+            { "value": "smoker", "label": "Hút thuốc" },
+            { "value": "alcohol", "label": "Uống rượu bia" },
+            { "value": "emergency", "label": "Phẫu thuật cấp cứu" },
+            { "value": "long-surgery", "label": "Phẫu thuật kéo dài (>3h)" },
+            { "value": "blood-loss", "label": "Dự kiến mất nhiều máu" },
+            { "value": "previous-surgery", "label": "Đ từng phẫu thuật" }
+          ]
+        },
+        {
+          "id": "overall-risk",
+          "name": "overallRisk",
+          "label": "Đánh Giá Nguy Cơ Tổng Thể",
+          "type": "radio",
+          "order": 2,
+          "required": true,
+          "width": "full",
+          "options": [
+            { "value": "low", "label": "Thấp" },
+            { "value": "moderate", "label": "Trung bình" },
+            { "value": "high", "label": "Cao" },
+            { "value": "very-high", "label": "Rất cao" }
+          ],
+          "columns": 4
+        },
+        {
+          "id": "fitness-for-surgery",
+          "name": "fitnessForSurgery",
+          "label": "Đủ Sức Khỏe Để Phẫu Thuật?",
+          "type": "radio",
+          "order": 3,
+          "required": true,
+          "width": "full",
+          "options": [
+            { "value": "yes", "label": "Có, đủ sức khỏe" },
+            { "value": "conditional", "label": "Có, cần chuẩn bị thêm" },
+            { "value": "no", "label": "Không, cần trì hoãn" }
+          ],
+          "columns": 3
+        },
+        {
+          "id": "risk-recommendations",
+          "name": "riskRecommendations",
+          "label": "Khuyến Nghị Giảm Nguy Cơ",
+          "type": "textarea",
+          "order": 4,
+          "required": true,
+          "width": "full",
+          "maxLength": 1000
+        }
+      ]
+    },
+    {
+      "id": "fasting",
+      "name": "Kiêng Ăn Uống",
+      "order": 10,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "fasting-status",
+          "name": "fastingStatus",
+          "label": "Tình Trạng Kiêng",
+          "type": "radio",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "options": [
+            { "value": "yes", "label": "Đã kiêng đủ thời gian" },
+            { "value": "partial", "label": "Kiêng chưa đủ" },
+            { "value": "no", "label": "Chưa kiêng" }
+          ],
+          "columns": 3
+        },
+        {
+          "id": "last-solid-food",
+          "name": "lastSolidFood",
+          "label": "Lần Cuối Ăn (giờ)",
+          "type": "number",
+          "order": 2,
+          "required": true,
+          "width": "third",
+          "min": 0,
+          "max": 48,
+          "unit": "giờ trước"
+        },
+        {
+          "id": "last-liquid",
+          "name": "lastLiquid",
+          "label": "Lần Cuối Uống Nước Lọc (giờ)",
+          "type": "number",
+          "order": 3,
+          "required": true,
+          "width": "third",
+          "min": 0,
+          "max": 24,
+          "unit": "giờ trước"
+        },
+        {
+          "id": "last-clear-fluid",
+          "name": "lastClearFluid",
+          "label": "Lần Cuối Uống Dịch Trong (giờ)",
+          "type": "number",
+          "order": 4,
+          "required": false,
+          "width": "third",
+          "min": 0,
+          "max": 12,
+          "unit": "giờ trước"
+        }
+      ]
+    },
+    {
+      "id": "premedication",
+      "name": "Thuốc Trước Phẫu Thuật",
+      "order": 11,
+      "collapsible": true,
+      "fields": [
+        {
+          "id": "current-meds",
+          "name": "currentMeds",
+          "label": "Thuốc Đang Dùng",
+          "type": "textarea",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "maxLength": 1000,
+          "placeholder": "Liệt kê các thuốc đang sử dụng"
+        },
+        {
+          "id": "continue-meds",
+          "name": "continueMeds",
+          "label": "Thuốc Cần Tiếp Tục Dùng",
+          "type": "textarea",
+          "order": 2,
+          "required": false,
+          "width": "full",
+          "maxLength": 500
+        },
+        {
+          "id": "stop-meds",
+          "name": "stopMeds",
+          "label": "Thuốc Cần Ngưng Trước PT",
+          "type": "textarea",
+          "order": 3,
+          "required": false,
+          "width": "full",
+          "maxLength": 500
+        },
+        {
+          "id": "premeds",
+          "name": "premeds",
+          "label": "Thuốc Trước Mê",
+          "type": "textarea",
+          "order": 4,
+          "required": false,
+          "width": "full",
+          "maxLength": 500,
+          "placeholder": "Sedative, anxiolytic, anti-sialagogue..."
+        }
+      ]
+    },
+    {
+      "id": "consent",
+      "name": "Đồng Ý Phẫu Thuật",
+      "order": 12,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "consent-signed",
+          "name": "consentSigned",
+          "label": "Đã Ký Giấy Đồng Ý",
+          "type": "radio",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "options": [
+            { "value": "yes", "label": "Có" },
+            { "value": "no", "label": "Chưa" }
+          ],
+          "columns": 2
+        },
+        {
+          "id": "consent-witness",
+          "name": "consentWitness",
+          "label": "Người Chứng Kiến",
+          "type": "text",
+          "order": 2,
+          "required": false,
+          "width": "half"
+        },
+        {
+          "id": "special-consents",
+          "name": "specialConsents",
+          "label": "Đồng Ý Đặc Biệt",
+          "type": "checkbox",
+          "order": 3,
+          "required": false,
+          "width": "full",
+          "multiple": true,
+          "columns": 2,
+          "options": [
+            { "value": "blood", "label": "Truyền máu" },
+            { "value": "icu", "label": "Hồi sức tích cực" },
+            { "value": "special-equipment", "label": "Dụng cụ đặc biệt" },
+            { "value": "video-recording", "label": "Quay video phẫu thuật" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "summary",
+      "name": "Tóm Tắt & Kết Luận",
+      "order": 13,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "anesthesia-plan",
+          "name": "anesthesiaPlan",
+          "label": "Kế Hoạch Vê Gáp",
+          "type": "textarea",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "maxLength": 1000
+        },
+        {
+          "id": "monitoring-plan",
+          "name": "monitoringPlan",
+          "label": "Kế Hoách Giám Sát",
+          "type": "textarea",
+          "order": 2,
+          "required": true,
+          "width": "full",
+          "maxLength": 500,
+          "placeholder": "ECG, NIBP, SpO2, ETCO2, nhiệt độ, dòng urine..."
+        },
+        {
+          "id": "iv-access",
+          "name": "ivAccess",
+          "label": "Tiêm Tĩnh Mạch",
+          "type": "textarea",
+          "order": 3,
+          "required": true,
+          "width": "full",
+          "maxLength": 300,
+          "placeholder": "Kích cỡ kim, vị trí"
+        },
+        {
+          "id": "conclusion",
+          "name": "conclusion",
+          "label": "Kết Luận",
+          "type": "textarea",
+          "order": 4,
+          "required": true,
+          "width": "full",
+          "maxLength": 1000
+        },
+        {
+          "id": "anesthesiologist-signature",
+          "name": "anesthesiologistSignature",
+          "label": "Chữ Ký Bác Sĩ Gây Mê",
+          "type": "signature",
+          "order": 5,
+          "required": true,
+          "width": "half"
+        },
+        {
+          "id": "datetime",
+          "name": "datetime",
+          "label": "Ngày Giờ",
+          "type": "datetime",
+          "order": 6,
+          "required": true,
+          "width": "half",
+          "readonly": true
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "allowPartialSave": true,
+    "requireSignature": true,
+    "autoSaveInterval": 60,
+    "confirmationRequired": true,
+    "submitButtonText": "Lưu Phiếu Giám Định",
+    "showProgress": true
+  },
+  "exportConfig": {
+    "docxTemplate": "templates/tien-phau.docx",
+    "pdfTemplate": "templates/tien-phau.pdf",
+    "includeTimestamp": true,
+    "includeSignature": true
+  }
+}

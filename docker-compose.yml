@@ -1,0 +1,108 @@
+version: "3.9"
+
+services:
+  # ============================================
+  # DATABASE
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: lolambenhan-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-lolambenhan}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-lolambenhan_password}
+      POSTGRES_DB: ${DB_NAME:-lolambenhan}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-lolambenhan}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # REDIS (Cache)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: lolambenhan-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # API (Bun + Elysia)
+  # ============================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: lolambenhan-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-lolambenhan}:${DB_PASSWORD:-lolambenhan_password}@postgres:5432/${DB_NAME:-lolambenhan}
+      REDIS_URL: redis://redis:6379
+      PORT: 3002
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_TOKEN_SECRET: ${ADMIN_TOKEN_SECRET}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-hoichan}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3001}
+    ports:
+      - "${API_PORT:-3002}:3002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # WEB (Next.js)
+  # ============================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: lolambenhan-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3002/apis/v1}
+    ports:
+      - "${WEB_PORT:-3001}:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: lolambenhan-network

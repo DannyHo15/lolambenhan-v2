@@ -1,0 +1,1037 @@
+/**
+ * Template Seeder - Seed database with medical form templates
+ * Run with: bun run seed-templates.ts
+ */
+
+import { getDb } from "../../infrastructure/database/connection"
+import { formTemplates } from "../../infrastructure/database/schema"
+
+const templates = [
+  {
+    id: "noi-khoa-v1",
+    name: "Bệnh án Nội khoa",
+    specialty: "noi-khoa" as const,
+    version: "1.0.0",
+    description: "Bệnh án nội khoa tiêu chuẩn",
+    status: "active" as const,
+    tags: ["nội khoa", "tiêu chuẩn"],
+    templateSchema: {
+      sections: [
+        {
+          id: "admin-info",
+          name: "Thông tin hành chính",
+          order: 1,
+          collapsible: false,
+          fields: [
+            { id: "hoten", name: "hoten", label: "Họ và tên", type: "text", order: 1, required: true, width: "full" as const },
+            { id: "gioitinh", name: "gioitinh", label: "Giới tính", type: "radio", order: 2, required: true, width: "half" as const, options: [{ value: "Nam", label: "Nam" }, { value: "Nữ", label: "Nữ" }] },
+            { id: "namsinh", name: "namsinh", label: "Năm sinh", type: "number", order: 3, required: true, width: "half" as const, min: 1900, max: 2025 },
+            { id: "dantoc", name: "dantoc", label: "Dân tộc", type: "text", order: 4, required: true, width: "half" as const },
+            { id: "nghenghiep", name: "nghenghiep", label: "Nghề nghiệp", type: "text", order: 5, required: true, width: "half" as const },
+            { id: "diachi", name: "diachi", label: "Địa chỉ", type: "text", order: 6, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "reason",
+          name: "Lý do vào viện",
+          order: 2,
+          collapsible: false,
+          fields: [
+            { id: "ngaygio", name: "ngaygio", label: "Ngày giờ vào viện", type: "datetime", order: 1, required: true, width: "half" as const },
+            { id: "lydo", name: "lydo", label: "Lý do vào viện", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "benhsu", name: "benhsu", label: "Bệnh sử", type: "textarea", order: 3, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "medical-history",
+          name: "Tiền sử",
+          order: 3,
+          collapsible: true,
+          collapsedByDefault: false,
+          fields: [
+            { id: "tiensu", name: "tiensu", label: "Tiền sử", type: "textarea", order: 1, required: false, width: "full" as const },
+          ],
+        },
+        {
+          id: "vital-signs",
+          name: "Triệu chứng và signs",
+          order: 4,
+          collapsible: false,
+          fields: [
+            { id: "mach", name: "mach", label: "Mạch", type: "text", order: 1, required: true, width: "third" as const },
+            { id: "nhietdo", name: "nhietdo", label: "Nhiệt độ", type: "text", order: 2, required: true, width: "third" as const },
+            { id: "nhiptho", name: "nhiptho", label: "Nhịp thở", type: "text", order: 3, required: true, width: "third" as const },
+            { id: "ha_tren", name: "ha_tren", label: "HA tối đa", type: "text", order: 4, required: true, width: "half" as const },
+            { id: "ha_duoi", name: "ha_duoi", label: "HA tối thiểu", type: "text", order: 5, required: true, width: "half" as const },
+            { id: "chieucao", name: "chieucao", label: "Chiều cao (cm)", type: "number", order: 6, required: true, width: "half" as const },
+            { id: "cannang", name: "cannang", label: "Cân nặng (kg)", type: "number", order: 7, required: true, width: "half" as const },
+          ],
+        },
+        {
+          id: "physical-exam",
+          name: "Khám lâm sàng",
+          order: 5,
+          collapsible: false,
+          fields: [
+            { id: "tongtrang", name: "tongtrang", label: "Tổng trạng", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "timmach", name: "timmach", label: "Tim mạch", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "hopho", name: "hopho", label: "Hô hấp", type: "textarea", order: 3, required: true, width: "full" as const },
+            { id: "tieuhoa", name: "tieuhoa", label: "Tiêu hóa", type: "textarea", order: 4, required: true, width: "full" as const },
+            { id: "than", name: "than", label: "Thận - Tiết niệu", type: "textarea", order: 5, required: true, width: "full" as const },
+            { id: "thankinh", name: "thankinh", label: "Thần kinh", type: "textarea", order: 6, required: true, width: "full" as const },
+            { id: "cokhop", name: "cokhop", label: "Cơ xương khớp", type: "textarea", order: 7, required: true, width: "full" as const },
+            { id: "coquankhac", name: "coquankhac", label: "Cơ quan khác", type: "textarea", order: 8, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "summary",
+          name: "Tóm tắt",
+          order: 6,
+          collapsible: false,
+          fields: [
+            { id: "tomtat", name: "tomtat", label: "Tóm tắt bệnh án", type: "textarea", order: 1, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "diagnosis",
+          name: "Chẩn đoán",
+          order: 7,
+          collapsible: false,
+          fields: [
+            { id: "chandoanso", name: "chandoanso", label: "Chẩn đoán sơ bộ", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "chandoanpd", name: "chandoanpd", label: "Chẩn đoán phân biệt", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "cls_thuongquy", name: "cls_thuongquy", label: "CLS thường quy", type: "textarea", order: 3, required: true, width: "full" as const },
+            { id: "cls_chuandoan", name: "cls_chuandoan", label: "CLS chẩn đoán", type: "textarea", order: 4, required: true, width: "full" as const },
+            { id: "ketqua", name: "ketqua", label: "Kết quả cận lâm sàng", type: "textarea", order: 5, required: true, width: "full" as const },
+            { id: "chandoanxacdinh", name: "chandoanxacdinh", label: "Chẩn đoán xác định", type: "textarea", order: 6, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "treatment",
+          name: "Điều trị",
+          order: 8,
+          collapsible: false,
+          fields: [
+            { id: "huongdieutri", name: "huongdieutri", label: "Hướng điều trị", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "dieutri", name: "dieutri", label: "Điều trị", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "tienluong", name: "tienluong", label: "Tiên lượng", type: "textarea", order: 3, required: true, width: "full" as const },
+            { id: "bienluan", name: "bienluan", label: "Biện luận", type: "textarea", order: 4, required: true, width: "full" as const },
+          ],
+        },
+      ],
+    },
+    settings: {
+      allowPartialSave: true,
+      requireSignature: false,
+      confirmationRequired: true,
+    },
+    exportConfig: {
+      includeTimestamp: true,
+      includeSignature: true,
+    },
+    createdBy: "system",
+  },
+  {
+    id: "tien-phau-v1",
+    name: "Bệnh án Tiền phẫu thuật",
+    specialty: "tien-phau" as const,
+    version: "1.0.0",
+    description: "Bệnh án tiền phẫu thuật - Đánh giá trước mổ",
+    status: "active" as const,
+    tags: ["tiền phẫu", "gây mê"],
+    templateSchema: {
+      sections: [
+        {
+          id: "patient-info",
+          name: "Thông tin bệnh nhân",
+          order: 1,
+          collapsible: false,
+          fields: [
+            { id: "hoten", name: "hoten", label: "Họ và tên", type: "text", order: 1, required: true, width: "full" as const },
+            { id: "gioitinh", name: "gioitinh", label: "Giới tính", type: "radio", order: 2, required: true, width: "half" as const, options: [{ value: "Nam", label: "Nam" }, { value: "Nữ", label: "Nữ" }] },
+            { id: "namsinh", name: "namsinh", label: "Năm sinh", type: "number", order: 3, required: true, width: "half" as const },
+            { id: "phong", name: "phong", label: "Phòng", type: "text", order: 4, required: true, width: "half" as const },
+            { id: "giuong", name: "giuong", label: "Giường", type: "text", order: 5, required: true, width: "half" as const },
+          ],
+        },
+        {
+          id: "surgery-info",
+          name: "Thông tin phẫu thuật",
+          order: 2,
+          collapsible: false,
+          fields: [
+            { id: "loaiphauthuat", name: "loaiphauthuat", label: "Loại phẫu thuật", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "bacsi", name: "bacsi", label: "Bác sĩ phẫu thuật", type: "text", order: 2, required: true, width: "full" as const },
+            { id: "gayme", name: "gayme", label: "Phương pháp gây mê", type: "select", order: 3, required: true, width: "full" as const, options: [
+              { value: "nhanh", label: "Gây mê nhanh" },
+              { value: "hoihap", label: "Gây mê hồi sức" },
+              { value: "dongmach", label: "Gây mê tĩnh mạch" },
+              { value: "cotSong", label: "Gây mê tủy sống" },
+              { value: "diaKhuc", label: "Liệt d dây thần kinh ngoại biên" },
+            ] },
+          ],
+        },
+        {
+          id: "asa-class",
+          name: "Phân loại ASA",
+          order: 3,
+          collapsible: false,
+          fields: [
+            { id: "asa", name: "asa", label: "ASA Classification", type: "select", order: 1, required: true, width: "full" as const, options: [
+              { value: "I", label: "ASA I - Khỏe mạnh bình thường" },
+              { value: "II", label: "ASA II - Bệnh lý nhẹ" },
+              { value: "III", label: "ASA III - Bệnh lý nặng" },
+              { value: "IV", label: "ASA IV - Bệnh lý đe dọa tính mạng" },
+              { value: "V", label: "ASA V - Không sống được nếu không mổ" },
+              { value: "VI", label: "ASA VI - Bệnh nhân đã chết não" },
+            ] },
+          ],
+        },
+        {
+          id: "vital-signs",
+          name: "Dấu hiệu sinh tồn",
+          order: 4,
+          collapsible: false,
+          fields: [
+            { id: "mach", name: "mach", label: "Mạch", type: "text", order: 1, required: true, width: "third" as const },
+            { id: "nhietdo", name: "nhietdo", label: "Nhiệt độ", type: "text", order: 2, required: true, width: "third" as const },
+            { id: "ha", name: "ha", label: "Huyết áp", type: "text", order: 3, required: true, width: "third" as const },
+            { id: "nhiptho", name: "nhiptho", label: "Nhịp thở", type: "text", order: 4, required: true, width: "third" as const },
+            { id: "spo2", name: "spo2", label: "SpO2", type: "text", order: 5, required: true, width: "third" as const },
+          ],
+        },
+        {
+          id: "exam-results",
+          name: "Kết quả khám",
+          order: 5,
+          collapsible: false,
+          fields: [
+            { id: "timmach", name: "timmach", label: "Tim mạch", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "hopho", name: "hopho", label: "Hô hấp", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "duongdat", name: "duongdat", label: "Đường dẫn khí", type: "select", order: 3, required: true, width: "full" as const, options: [
+              { value: "I", label: "Grade I - Có thể mở miệng" },
+              { value: "II", label: "Grade II - Nhìn thấy amidan" },
+              { value: "III", label: "Grade III - Nhìn thấy phần mềm thành họng" },
+              { value: "IV", label: "Grade IV - Không thấy thành họng" },
+            ] },
+            { id: "cotco", name: "cotco", label: "Cổ", type: "textarea", order: 4, required: true, width: "full" as const },
+            { id: "khac", name: "khac", label: "Khác", type: "textarea", order: 5, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "risk-assessment",
+          name: "Đánh giá nguy cơ",
+          order: 6,
+          collapsible: false,
+          fields: [
+            { id: "nguyco", name: "nguyco", label: "Yếu tố nguy cơ", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "chedophong", name: "chedophong", label: "Chế độ dự phòng", type: "textarea", order: 2, required: true, width: "full" as const },
+          ],
+        },
+      ],
+    },
+    settings: {
+      allowPartialSave: true,
+      requireSignature: false,
+    },
+    exportConfig: {
+      includeTimestamp: true,
+      includeSignature: true,
+    },
+    createdBy: "system",
+  },
+  {
+    id: "hau-phau-v1",
+    name: "Bệnh án Hậu phẫu thuật",
+    specialty: "hau-phau" as const,
+    version: "1.0.0",
+    description: "Bệnh án hậu phẫu thuật - Theo dõi sau mổ",
+    status: "active" as const,
+    tags: ["hậu phẫu", "phục hồi"],
+    templateSchema: {
+      sections: [
+        {
+          id: "surgery-info",
+          name: "Thông tin phẫu thuật",
+          order: 1,
+          collapsible: false,
+          fields: [
+            { id: "hoten", name: "hoten", label: "Họ và tên", type: "text", order: 1, required: true, width: "full" as const },
+            { id: "phong", name: "phong", label: "Phòng", type: "text", order: 2, required: true, width: "half" as const },
+            { id: "giuong", name: "giuong", label: "Giường", type: "text", order: 3, required: true, width: "half" as const },
+            { id: "loaiphauthuat", name: "loaiphauthuat", label: "Loại phẫu thuật", type: "textarea", order: 4, required: true, width: "full" as const },
+            { id: "gayme", name: "gayme", label: "Phương pháp gây mê", type: "text", order: 5, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "recovery-room",
+          name: "Phòng hồi sức",
+          order: 2,
+          collapsible: false,
+          fields: [
+            { id: "vaoRoom", name: "vaoRoom", label: "Giờ vào phòng", type: "datetime", order: 1, required: true, width: "half" as const },
+            { id: "raRoom", name: "raRoom", label: "Giờ ra phòng", type: "datetime", order: 2, required: true, width: "half" as const },
+            { id: "triLac", name: "triLac", label: "Tri giác lúc vào", type: "select", order: 3, required: true, width: "full" as const, options: [
+              { value: "totoan", label: "Tỉnh táo" },
+              { value: "say", label: "Say" },
+              { value: "vay", label: "Vày" },
+            ] },
+            { id: "triLacRa", name: "triLacRa", label: "Tri giác lúc ra", type: "select", order: 4, required: true, width: "full" as const, options: [
+              { value: "totoan", label: "Tỉnh táo" },
+              { value: "say", label: "Say" },
+              { value: "vay", label: "Vày" },
+            ] },
+          ],
+        },
+        {
+          id: "vital-signs",
+          name: "Theo dõi sinh hiệu",
+          order: 3,
+          collapsible: false,
+          repeatable: true,
+          minRepeat: 1,
+          maxRepeat: 50,
+          fields: [
+            { id: "gio", name: "gio", label: "Giờ", type: "datetime", order: 1, required: true, width: "third" as const },
+            { id: "mach", name: "mach", label: "Mạch", type: "text", order: 2, required: true, width: "quarter" as const },
+            { id: "ha", name: "ha", label: "HA", type: "text", order: 3, required: true, width: "quarter" as const },
+            { id: "nhietdo", name: "nhietdo", label: "Nhiệt độ", type: "text", order: 4, required: true, width: "quarter" as const },
+            { id: "nhiptho", name: "nhiptho", label: "Nhịp thở", type: "text", order: 5, required: true, width: "quarter" as const },
+            { id: "spo2", name: "spo2", label: "SpO2", type: "text", order: 6, required: true, width: "quarter" as const },
+            { id: "makhongtho", name: "makhongtho", label: "Mới không thở", type: "text", order: 7, required: false, width: "quarter" as const },
+            { id: "chedodutch", name: "chedodutch", label: "Chế độ dịch", type: "textarea", order: 8, required: false, width: "full" as const },
+          ],
+        },
+        {
+          id: "pain-management",
+          name: "Kiểm soát đau",
+          order: 4,
+          collapsible: false,
+          fields: [
+            { id: "dau", name: "dau", label: "Đau (0-10)", type: "number", order: 1, required: true, width: "half" as const, min: 0, max: 10 },
+            { id: "thuocdau", name: "thuocdau", label: "Thuốc giảm đau", type: "text", order: 2, required: true, width: "half" as const },
+          ],
+        },
+        {
+          id: "discharge",
+          name: "Xuất viện",
+          order: 5,
+          collapsible: false,
+          fields: [
+            { id: "xuatvien", name: "xuatvien", label: "Tình trạng xuất viện", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "chidan", name: "chidan", label: "Chỉ định", type: "textarea", order: 2, required: true, width: "full" as const },
+          ],
+        },
+      ],
+    },
+    settings: {
+      allowPartialSave: true,
+      requireSignature: true,
+    },
+    exportConfig: {
+      includeTimestamp: true,
+      includeSignature: true,
+    },
+    createdBy: "system",
+  },
+  {
+    id: "san-khoa-v1",
+    name: "Bệnh án Sản khoa",
+    specialty: "san-khoa" as const,
+    version: "1.0.0",
+    description: "Bệnh án sản khoa",
+    status: "active" as const,
+    tags: ["sản khoa"],
+    templateSchema: {
+      sections: [
+        {
+          id: "patient-info",
+          name: "Thông tin sản phụ",
+          order: 1,
+          collapsible: false,
+          fields: [
+            { id: "hoten", name: "hoten", label: "Họ và tên", type: "text", order: 1, required: true, width: "full" as const },
+            { id: "namsinh", name: "namsinh", label: "Năm sinh", type: "number", order: 2, required: true, width: "half" as const },
+            { id: "sonhi", name: "sonhi", label: "Số nhất (Số con)", type: "number", order: 3, required: true, width: "half" as const },
+            { id: "diachi", name: "diachi", label: "Địa chỉ", type: "text", order: 4, required: true, width: "full" as const },
+            { id: "nguoiNha", name: "nguoiNha", label: "Người nhà", type: "text", order: 5, required: true, width: "full" as const },
+            { id: "sodienthoai", name: "sodienthoai", label: "Số điện thoại", type: "text", order: 6, required: true, width: "half" as const },
+          ],
+        },
+        {
+          id: "obstetric-history",
+          name: "Tiền sử sản khoa",
+          order: 2,
+          collapsible: true,
+          fields: [
+            { id: "sinhconthu", name: "sinhconthu", label: "Đã sinh con lần thứ", type: "number", order: 1, required: false, width: "half" as const },
+            { id: "cachsinh", name: "cachsinh", label: "Cách sinh", type: "select", order: 2, required: false, width: "half" as const, options: [
+              { value: "duthuong", label: "Đường thường" },
+              { value: "dathu", label: "Dùng thuốc" },
+              { value: "phauthuat", label: "Phẫu thuật" },
+            ] },
+            { id: "tiensusan", name: "tiensusan", label: "Tiền sử sản any", type: "textarea", order: 3, required: false, width: "full" as const },
+          ],
+        },
+        {
+          id: "current-pregnancy",
+          name: "Thai kỳ hiện tại",
+          order: 3,
+          collapsible: false,
+          fields: [
+            { id: "ngaycuoi kinh", name: "ngaycuoikinh", label: "Ngày cuối kinh", type: "date", order: 1, required: true, width: "half" as const },
+            { id: "tuoi thai", name: "tuoi thai", label: "Tuổi thai", type: "text", order: 2, required: true, width: "half" as const },
+            { id: "du doan sinh", name: "duduoiansinh", label: "Dự đoán sinh", type: "date", order: 3, required: true, width: "half" as const },
+            { id: "lydo", name: "lydo", label: "Lý do vào viện", type: "textarea", order: 4, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "exam",
+          name: "Khám thai",
+          order: 4,
+          collapsible: false,
+          fields: [
+            { id: "tongtrang", name: "tongtrang", label: "Tổng trạng", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "mach", name: "mach", label: "Mạch", type: "text", order: 2, required: true, width: "third" as const },
+            { id: "nhietdo", name: "nhietdo", label: "Nhiệt độ", type: "text", order: 3, required: true, width: "third" as const },
+            { id: "ha", name: "ha", label: "Huyết áp", type: "text", order: 4, required: true, width: "third" as const },
+            { id: "sanphu", name: "sanphu", label: "Khám sản phụ", type: "textarea", order: 5, required: true, width: "full" as const },
+            { id: "thai", name: "thai", label: "Khám thai", type: "textarea", order: 6, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "diagnosis",
+          name: "Chẩn đoán và xử trí",
+          order: 5,
+          collapsible: false,
+          fields: [
+            { id: "chandoan", name: "chandoan", label: "Chẩn đoán", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "xutri", name: "xutri", label: "Xử trí", type: "textarea", order: 2, required: true, width: "full" as const },
+          ],
+        },
+      ],
+    },
+    settings: { allowPartialSave: true, requireSignature: true },
+    exportConfig: { includeTimestamp: true, includeSignature: true },
+    createdBy: "system",
+  },
+  {
+    id: "phu-khoa-v1",
+    name: "Bệnh án Phụ khoa",
+    specialty: "phu-khoa" as const,
+    version: "1.0.0",
+    description: "Bệnh án phụ khoa",
+    status: "active" as const,
+    tags: ["phụ khoa"],
+    templateSchema: {
+      sections: [
+        {
+          id: "patient-info",
+          name: "Thông tin bệnh nhân",
+          order: 1,
+          collapsible: false,
+          fields: [
+            { id: "hoten", name: "hoten", label: "Họ và tên", type: "text", order: 1, required: true, width: "full" as const },
+            { id: "namsinh", name: "namsinh", label: "Năm sinh", type: "number", order: 2, required: true, width: "half" as const },
+            { id: "tinhtrang", name: "tinhtrang", label: "Tình trạng hôn nhân", type: "select", order: 3, required: true, width: "half" as const, options: [
+              { value: "docthan", label: "Độc thân" },
+              { value: "dihon", label: "Đã kết hôn" },
+            ] },
+            { id: "nghenghiep", name: "nghenghiep", label: "Nghề nghiệp", type: "text", order: 4, required: true, width: "full" as const },
+            { id: "diachi", name: "diachi", label: "Địa chỉ", type: "text", order: 5, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "complaint",
+          name: "Lý do đến khám",
+          order: 2,
+          collapsible: false,
+          fields: [
+            { id: "lydo", name: "lydo", label: "Lý do đến khám", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "benhsu", name: "benhsu", label: "Bệnh sử", type: "textarea", order: 2, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "gyn-exam",
+          name: "Khám phụ khoa",
+          order: 3,
+          collapsible: false,
+          fields: [
+            { id: "ngoai", name: "ngoai", label: "Bàn ngoài", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "trong", name: "trong", label: "Túi âm đạo", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "cocaustu", name: "cocaustu", label: "Cổ tử cung", type: "textarea", order: 3, required: true, width: "full" as const },
+            { id: "vuttu", name: "vuttu", label: "Vụ tử cung", type: "textarea", order: 4, required: true, width: "full" as const },
+            { id: "phukhoa", name: "phukhoa", label: "Phụ khoa", type: "textarea", order: 5, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "exam",
+          name: "Khám tổng quát",
+          order: 4,
+          collapsible: false,
+          fields: [
+            { id: "mach", name: "mach", label: "Mạch", type: "text", order: 1, required: true, width: "third" as const },
+            { id: "nhietdo", name: "nhietdo", label: "Nhiệt độ", type: "text", order: 2, required: true, width: "third" as const },
+            { id: "ha", name: "ha", label: "Huyết áp", type: "text", order: 3, required: true, width: "third" as const },
+            { id: "timmach", name: "timmach", label: "Tim mạch", type: "textarea", order: 4, required: true, width: "full" as const },
+            { id: "khac", name: "khac", label: "Khác", type: "textarea", order: 5, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "diagnosis",
+          name: "Chẩn đoán",
+          order: 5,
+          collapsible: false,
+          fields: [
+            { id: "chandoan", name: "chandoan", label: "Chẩn đoán", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "cls", name: "cls", label: "Chỉ định cận lâm sàng", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "xutri", name: "xutri", label: "Xử trí", type: "textarea", order: 3, required: true, width: "full" as const },
+          ],
+        },
+      ],
+    },
+    settings: { allowPartialSave: true, requireSignature: false },
+    exportConfig: { includeTimestamp: true, includeSignature: true },
+    createdBy: "system",
+  },
+  {
+    id: "nhi-khoa-v1",
+    name: "Bệnh án Nhi khoa",
+    specialty: "nhi-khoa" as const,
+    version: "1.0.0",
+    description: "Bệnh án nhi khoa",
+    status: "active" as const,
+    tags: ["nhi khoa"],
+    templateSchema: {
+      sections: [
+        {
+          id: "patient-info",
+          name: "Thông tin bệnh nhi",
+          order: 1,
+          collapsible: false,
+          fields: [
+            { id: "hoten", name: "hoten", label: "Họ và tên", type: "text", order: 1, required: true, width: "full" as const },
+            { id: "gioitinh", name: "gioitinh", label: "Giới tính", type: "radio", order: 2, required: true, width: "half" as const, options: [
+              { value: "Nam", label: "Nam" },
+              { value: "Nữ", label: "Nữ" },
+            ] },
+            { id: "ngaysinh", name: "ngaysinh", label: "Ngày sinh", type: "date", order: 3, required: true, width: "half" as const },
+            { id: "nguoinha", name: "nguoinha", label: "Người nhà", type: "text", order: 4, required: true, width: "full" as const },
+            { id: "diachi", name: "diachi", label: "Địa chỉ", type: "text", order: 5, required: true, width: "full" as const },
+            { id: "sodienthoai", name: "sodienthoai", label: "Số điện thoại", type: "text", order: 6, required: true, width: "half" as const },
+          ],
+        },
+        {
+          id: "complaint",
+          name: "Lý do vào viện",
+          order: 2,
+          collapsible: false,
+          fields: [
+            { id: "ngaygio", name: "ngaygio", label: "Ngày giờ vào viện", type: "datetime", order: 1, required: true, width: "half" as const },
+            { id: "lydo", name: "lydo", label: "Lý do vào viện", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "benhsu", name: "benhsu", label: "Bệnh sử", type: "textarea", order: 3, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "pediatric-history",
+          name: "Tiền sử nhi",
+          order: 3,
+          collapsible: true,
+          fields: [
+            { id: "sinhsodon", name: "sinhsodon", label: "Sinh đơn/thứ", type: "select", order: 1, required: false, width: "half" as const, options: [
+              { value: "don", label: "Đơn" },
+              { value: "so", label: "Sơ" },
+              { value: "ba", label: "Ba" },
+              { value: "tu", label: "Tú" },
+            ] },
+            { id: "tuoi", name: "tuoi", label: "Tuổi thai khi sinh", type: "number", order: 2, required: false, width: "half" as const, min: 28, max: 42 },
+            { id: "cannang", name: "cannang", label: "Cân nặng khi sinh", type: "number", order: 3, required: false, width: "half" as const, step: 0.1 },
+            { id: "tiensu", name: "tiensu", label: "Tiền sử", type: "textarea", order: 4, required: false, width: "full" as const },
+          ],
+        },
+        {
+          id: "exam",
+          name: "Khám bệnh",
+          order: 4,
+          collapsible: false,
+          fields: [
+            { id: "tongtrang", name: "tongtrang", label: "Tổng trạng", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "mach", name: "mach", label: "Mạch", type: "text", order: 2, required: true, width: "third" as const },
+            { id: "nhietdo", name: "nhietdo", label: "Nhiệt độ", type: "text", order: 3, required: true, width: "third" as const },
+            { id: "nhiptho", name: "nhiptho", label: "Nhịp thở", type: "text", order: 4, required: true, width: "third" as const },
+            { id: "than", name: "than", label: "Thần kinh", type: "textarea", order: 5, required: true, width: "full" as const },
+            { id: "timmach", name: "timmach", label: "Tim mạch", type: "textarea", order: 6, required: true, width: "full" as const },
+            { id: "hohap", name: "hohap", label: "Hô hấp", type: "textarea", order: 7, required: true, width: "full" as const },
+            { id: "tieuhoa", name: "tieuhoa", label: "Tiêu hóa", type: "textarea", order: 8, required: true, width: "full" as const },
+            { id: "coxuongkhop", name: "coxuongkhop", label: "Cơ xương khớp", type: "textarea", order: 9, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "diagnosis",
+          name: "Chẩn đoán",
+          order: 5,
+          collapsible: false,
+          fields: [
+            { id: "chandoanso", name: "chandoanso", label: "Chẩn đoán sơ bộ", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "cls", name: "cls", label: "Chỉ định cận lâm sàng", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "xutri", name: "xutri", label: "Xử trí", type: "textarea", order: 3, required: true, width: "full" as const },
+          ],
+        },
+      ],
+    },
+    settings: { allowPartialSave: true, requireSignature: false },
+    exportConfig: { includeTimestamp: true, includeSignature: true },
+    createdBy: "system",
+  },
+  {
+    id: "yhct-v1",
+    name: "Bệnh án Y học cổ truyền",
+    specialty: "yhct" as const,
+    version: "1.0.0",
+    description: "Bệnh án Y học cổ truyền",
+    status: "active" as const,
+    tags: ["yhct", "y học cổ truyền"],
+    templateSchema: {
+      sections: [
+        {
+          id: "patient-info",
+          name: "Thông tin bệnh nhân",
+          order: 1,
+          collapsible: false,
+          fields: [
+            { id: "hoten", name: "hoten", label: "Họ và tên", type: "text", order: 1, required: true, width: "full" as const },
+            { id: "gioitinh", name: "gioitinh", label: "Giới tính", type: "radio", order: 2, required: true, width: "half" as const, options: [
+              { value: "Nam", label: "Nam" },
+              { value: "Nữ", label: "Nữ" },
+            ] },
+            { id: "namsinh", name: "namsinh", label: "Năm sinh", type: "number", order: 3, required: true, width: "half" as const },
+            { id: "diachi", name: "diachi", label: "Địa chỉ", type: "text", order: 4, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "complaint",
+          name: "Lý do đến khám",
+          order: 2,
+          collapsible: false,
+          fields: [
+            { id: "lydo", name: "lydo", label: "Chủ yếu", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "phu", name: "phu", label: "Phụ (kèm theo)", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "benhsu", name: "benhsu", label: "Bệnh sử", type: "textarea", order: 3, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "exam",
+          name: "Khám bệnh - Vọng - Wen - Triết",
+          order: 3,
+          collapsible: false,
+          fields: [
+            { id: "vong", name: "vong", label: "Vọng (dáng dáng, thần sắc)", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "wen", name: "wen", label: "Wen (nghe, hỏi)", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "triet", name: "triet", label: "Triết (bắt mạch, nhìn lưỡi)", type: "textarea", order: 3, required: true, width: "full" as const },
+            { id: "khambenh", name: "khambenh", label: "Khám bệnh", type: "textarea", order: 4, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "diagnosis-yhct",
+          name: "Chẩn đoán YHCT",
+          order: 4,
+          collapsible: false,
+          fields: [
+            { id: "bangang", name: "bangang", label: "Bàn ngang", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "canngang", name: "canngang", label: "Càn ngang", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "cuuDuoc", name: "cuuDuoc", label: "Cứu dược", type: "textarea", order: 3, required: true, width: "full" as const },
+            { id: "chandoan", name: "chandoan", label: "Chẩn đoán xác định", type: "textarea", order: 4, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "treatment",
+          name: "Điều trị",
+          order: 5,
+          collapsible: false,
+          fields: [
+            { id: "dieutri", name: "dieutri", label: "Điều trị", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "thuoc", name: "thuoc", label: "Thuốc", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "gidinh", name: "gidinh", label: "Chỉ định", type: "textarea", order: 3, required: true, width: "full" as const },
+          ],
+        },
+      ],
+    },
+    settings: { allowPartialSave: true, requireSignature: false },
+    exportConfig: { includeTimestamp: true, includeSignature: true },
+    createdBy: "system",
+  },
+  {
+    id: "dieu-duong-v1",
+    name: "Bệnh án Điều dưỡng",
+    specialty: "dieu-duong" as const,
+    version: "1.0.0",
+    description: "Bệnh án điều dưỡng",
+    status: "active" as const,
+    tags: ["điều dưỡng"],
+    templateSchema: {
+      sections: [
+        {
+          id: "patient-info",
+          name: "Thông tin bệnh nhân",
+          order: 1,
+          collapsible: false,
+          fields: [
+            { id: "hoten", name: "hoten", label: "Họ và tên", type: "text", order: 1, required: true, width: "full" as const },
+            { id: "namsinh", name: "namsinh", label: "Năm sinh", type: "number", order: 2, required: true, width: "half" as const },
+            { id: "phong", name: "phong", label: "Phòng", type: "text", order: 3, required: true, width: "half" as const },
+            { id: "giuong", name: "giuong", label: "Giường", type: "text", order: 4, required: true, width: "half" as const },
+            { id: "chandoan", name: "chandoan", label: "Chẩn đoán chính", type: "text", order: 5, required: true, width: "half" as const },
+          ],
+        },
+        {
+          id: "nursing-assessment",
+          name: "Đánh giá điều dưỡng",
+          order: 2,
+          collapsible: false,
+          fields: [
+            { id: "nhanthuc", name: "nhanthuc", label: "Nhận thức", type: "select", order: 1, required: true, width: "half" as const, options: [
+              { value: "totoan", label: "Tỉnh táo" },
+              { value: "say", label: "Say" },
+              { value: "vay", label: "Vày" },
+              { value: "coma", label: "Hôn mê" },
+            ] },
+            { id: "tho", name: "tho", label: "Thở", type: "select", order: 2, required: true, width: "half" as const, options: [
+              { value: "binhthuong", label: "Bình thường" },
+              { value: "kho", label: "Khó thở" },
+              { value: "dant", label: "Dẫn khí" },
+              { value: "khongtuhoi", label: "Không tự thở" },
+            ] },
+            { id: "mach", name: "mach", label: "Mạch", type: "text", order: 3, required: true, width: "third" as const },
+            { id: "ha", name: "ha", label: "Huyết áp", type: "text", order: 4, required: true, width: "third" as const },
+            { id: "nhietdo", name: "nhietdo", label: "Nhiệt độ", type: "text", order: 5, required: true, width: "third" as const },
+            { id: "spo2", name: "spo2", label: "SpO2", type: "text", order: 6, required: true, width: "third" as const },
+          ],
+        },
+        {
+          id: "vital-signs-monitoring",
+          name: "Theo dõi sinh hiệu",
+          order: 3,
+          collapsible: false,
+          repeatable: true,
+          fields: [
+            { id: "gio", name: "gio", label: "Giờ", type: "datetime", order: 1, required: true, width: "quarter" as const },
+            { id: "mach", name: "mach", label: "Mạch", type: "text", order: 2, required: true, width: "quarter" as const },
+            { id: "ha", name: "ha", label: "HA", type: "text", order: 3, required: true, width: "quarter" as const },
+            { id: "nhietdo", name: "nhietdo", label: "Nhiệt độ", type: "text", order: 4, required: true, width: "quarter" as const },
+            { id: "nhiptho", name: "nhiptho", label: "Nhịp thở", type: "text", order: 5, required: true, width: "quarter" as const },
+            { id: "spo2", name: "spo2", label: "SpO2", type: "text", order: 6, required: true, width: "quarter" as const },
+            { id: "ghichu", name: "ghichu", label: "Ghi chú", type: "textarea", order: 7, required: false, width: "full" as const },
+          ],
+        },
+        {
+          id: "nursing-interventions",
+          name: "Can thiệp điều dưỡng",
+          order: 4,
+          collapsible: false,
+          fields: [
+            { id: "canthiep", name: "canthiep", label: "Can thiệp", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "giamsat", name: "giamsat", label: "Giám sát", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "van dong", name: "vandong", label: "Vận động", type: "textarea", order: 3, required: true, width: "full" as const },
+            { id: "dinh duong", name: "dinhduong", label: "Dinh dưỡng", type: "textarea", order: 4, required: true, width: "full" as const },
+            { id: "vesinh", name: "vesinh", label: "Vệ sinh", type: "textarea", order: 5, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "evaluation",
+          name: "Đánh giá",
+          order: 5,
+          collapsible: false,
+          fields: [
+            { id: "danhgia", name: "danhgia", label: "Đánh giá hiệu quả", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "chidan", name: "chidan", label: "Chỉ định tiếp theo", type: "textarea", order: 2, required: true, width: "full" as const },
+          ],
+        },
+      ],
+    },
+    settings: { allowPartialSave: true, requireSignature: false },
+    exportConfig: { includeTimestamp: true, includeSignature: true },
+    createdBy: "system",
+  },
+  {
+    id: "gmhs-sv-v1",
+    name: "Bệnh án Gây mê hồi sức (Sinh viên)",
+    specialty: "gmhs-sv" as const,
+    version: "1.0.0",
+    description: "Bệnh án gây mê hồi sức dành cho sinh viên Y khoa",
+    status: "active" as const,
+    tags: ["gây mê", "sinh viên"],
+    templateSchema: {
+      sections: [
+        {
+          id: "patient-info",
+          name: "Thông tin bệnh nhân",
+          order: 1,
+          collapsible: false,
+          fields: [
+            { id: "hoten", name: "hoten", label: "Họ và tên", type: "text", order: 1, required: true, width: "full" as const },
+            { id: "namsinh", name: "namsinh", label: "Năm sinh", type: "number", order: 2, required: true, width: "half" as const },
+            { id: "gioitinh", name: "gioitinh", label: "Giới tính", type: "radio", order: 3, required: true, width: "half" as const, options: [
+              { value: "Nam", label: "Nam" },
+              { value: "Nữ", label: "Nữ" },
+            ] },
+            { id: "canNang", name: "canNang", label: "Cân nặng (kg)", type: "number", order: 4, required: true, width: "half" as const },
+            { id: "chieuCao", name: "chieuCao", label: "Chiều cao (cm)", type: "number", order: 5, required: true, width: "half" as const },
+            { id: "phong", name: "phong", label: "Phòng", type: "text", order: 6, required: true, width: "half" as const },
+            { id: "giuong", name: "giuong", label: "Giường", type: "text", order: 7, required: true, width: "half" as const },
+          ],
+        },
+        {
+          id: "surgery-info",
+          name: "Thông tin phẫu thuật",
+          order: 2,
+          collapsible: false,
+          fields: [
+            { id: "loaiPhauThuat", name: "loaiPhauThuat", label: "Loại phẫu thuật", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "bacSi", name: "bacSi", label: "Bác sĩ mổ", type: "text", order: 2, required: true, width: "full" as const },
+            { id: "phuongPhGayMe", name: "phuongPhGayMe", label: "Phương pháp gây mê", type: "select", order: 3, required: true, width: "full" as const, options: [
+              { value: "nhanh", label: "Gây mê nhanh" },
+              { value: "hoiHap", label: "Gây mê hồi sức" },
+              { value: "dongMach", label: "Gây mê tĩnh mạch" },
+              { value: "cotSong", label: "Gây mê tủy sống" },
+            ] },
+          ],
+        },
+        {
+          id: "pre-anesthesia",
+          name: "Đánh giá tiền gây mê",
+          order: 3,
+          collapsible: false,
+          fields: [
+            { id: "asa", name: "asa", label: "ASA Classification", type: "select", order: 1, required: true, width: "full" as const, options: [
+              { value: "I", label: "ASA I" },
+              { value: "II", label: "ASA II" },
+              { value: "III", label: "ASA III" },
+              { value: "IV", label: "ASA IV" },
+              { value: "V", label: "ASA V" },
+            ] },
+            { id: "timMach", name: "timMach", label: "Tim mạch", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "hoHap", name: "hoHap", label: "Hô hấp", type: "textarea", order: 3, required: true, width: "full" as const },
+            { id: "duongDanKhi", name: "duongDanKhi", label: "Đường dẫn khí (Mallampati)", type: "select", order: 4, required: true, width: "full" as const, options: [
+              { value: "I", label: "Class I" },
+              { value: "II", label: "Class II" },
+              { value: "III", label: "Class III" },
+              { value: "IV", label: "Class IV" },
+            ] },
+            { id: "cotCo", name: "cotCo", label: "Cổ", type: "textarea", order: 5, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "vital-signs",
+          name: "Dấu hiệu sinh tồn",
+          order: 4,
+          collapsible: false,
+          fields: [
+            { id: "mach", name: "mach", label: "Mạch", type: "text", order: 1, required: true, width: "quarter" as const },
+            { id: "ha", name: "ha", label: "Huyết áp", type: "text", order: 2, required: true, width: "quarter" as const },
+            { id: "nhietDo", name: "nhietDo", label: "Nhiệt độ", type: "text", order: 3, required: true, width: "quarter" as const },
+            { id: "nhipTho", name: "nhipTho", label: "Nhịp thở", type: "text", order: 4, required: true, width: "quarter" as const },
+          { id: "spo2", name: "spo2", label: "SpO2", type: "text", order: 5, required: true, width: "quarter" as const },
+          { id: "duongThuoc", name: "duongThuoc", label: "Đường thở", type: "text", order: 6, required: true, width: "half" as const },
+            { id: "chiCheXuong", name: "chiCheXuong", label: "Chiều cheats xương ức", type: "text", order: 7, required: true, width: "half" as const },
+          ],
+        },
+        {
+          id: "plan",
+          name: "Kế hoạch gây mê",
+          order: 5,
+          collapsible: false,
+          fields: [
+            { id: "duKien", name: "duKien", label: "Dự kiến gây mê", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "duPhong", name: "duPhong", label: "Dự phòng và xử trí biến chứng", type: "textarea", order: 2, required: true, width: "full" as const },
+          ],
+        },
+      ],
+    },
+    settings: { allowPartialSave: true, requireSignature: false },
+    exportConfig: { includeTimestamp: true, includeSignature: true },
+    createdBy: "system",
+  },
+  {
+    id: "gmhs-bs-v1",
+    name: "Bệnh án Gây mê hồi sức (Bác sĩ)",
+    specialty: "gmhs-bs" as const,
+    version: "1.0.0",
+    description: "Bệnh án gây mê hồi sức dành cho bác sĩ sau đại học",
+    status: "active" as const,
+    tags: ["gây mê", "bác sĩ"],
+    templateSchema: {
+      sections: [
+        {
+          id: "patient-info",
+          name: "Thông tin bệnh nhân",
+          order: 1,
+          collapsible: false,
+          fields: [
+            { id: "hoten", name: "hoten", label: "Họ và tên", type: "text", order: 1, required: true, width: "full" as const },
+            { id: "namsinh", name: "namsinh", label: "Năm sinh", type: "number", order: 2, required: true, width: "half" as const },
+            { id: "gioitinh", name: "gioitinh", label: "Giới tính", type: "radio", order: 3, required: true, width: "half" as const, options: [
+              { value: "Nam", label: "Nam" },
+              { value: "Nữ", label: "Nữ" },
+            ] },
+            { id: "canNang", name: "canNang", label: "Cân nặng (kg)", type: "number", order: 4, required: true, width: "half" as const },
+            { id: "chieuCao", name: "chieuCao", label: "Chiều cao (cm)", type: "number", order: 5, required: true, width: "half" as const },
+            { id: "bmi", name: "bmi", label: "BMI", type: "text", order: 6, required: false, width: "half" as const },
+            { id: "phong", name: "phong", label: "Phòng", type: "text", order: 7, required: true, width: "half" as const },
+            { id: "giuong", name: "giuong", label: "Giường", type: "text", order: 8, required: true, width: "half" as const },
+          ],
+        },
+        {
+          id: "diagnosis",
+          name: "Chẩn đoán",
+          order: 2,
+          collapsible: false,
+          fields: [
+            { id: "chanDoanChinh", name: "chanDoanChinh", label: "Chẩn đoán chính", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "chanDoanPhu", name: "chanDoanPhu", label: "Chẩn đoán phụ", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "pheDinh", name: "pheDinh", label: "Phê duyệt phẫu thuật", type: "textarea", order: 3, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "surgery-info",
+          name: "Thông tin phẫu thuật",
+          order: 3,
+          collapsible: false,
+          fields: [
+            { id: "loaiPhauThuat", name: "loaiPhauThuat", label: "Loại phẫu thuật", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "bacSiPhauThuat", name: "bacSiPhauThuat", label: "Bác sĩ phẫu thuật", type: "text", order: 2, required: true, width: "full" as const },
+            { id: "bacSiGayMe", name: "bacSiGayMe", label: "Bác sĩ gây mê", type: "text", order: 3, required: true, width: "full" as const },
+            { id: "phuongPhGayMe", name: "phuongPhGayMe", label: "Phương pháp gây mê", type: "textarea", order: 4, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "pre-anesthesia-assessment",
+          name: "Đánh giá tiền gây mê",
+          order: 4,
+          collapsible: false,
+          fields: [
+            { id: "asa", name: "asa", label: "ASA Classification", type: "select", order: 1, required: true, width: "full" as const, options: [
+              { value: "I", label: "ASA I - Bình thường" },
+              { value: "II", label: "ASA II - Bệnh lý nhẹ" },
+              { value: "III", label: "ASA III - Bệnh lý nặng" },
+              { value: "IV", label: "ASA IV - Đe dọa tính mạng" },
+              { value: "V", label: "ASA V - Không sống nếu không mổ" },
+              { value: "VI", label: "ASA VI - Chết não" },
+            ] },
+            { id: "nyha", name: "nyha", label: "Phân loại NYHA (nếu có suy tim)", type: "select", order: 2, required: false, width: "full" as const, options: [
+              { value: "I", label: "Class I" },
+              { value: "II", label: "Class II" },
+              { value: "III", label: "Class III" },
+              { value: "IV", label: "Class IV" },
+            ] },
+            { id: "mallampati", name: "mallampati", label: "Mallampati Score", type: "select", order: 3, required: true, width: "full" as const, options: [
+              { value: "I", label: "Class I - Soft palate visible" },
+              { value: "II", label: "Class II - Pillars visible" },
+              { value: "III", label: "Class III - Soft palate only" },
+              { value: "IV", label: "Class IV - Soft palate not visible" },
+            ] },
+            { id: "thongTinThem", name: "thongTinThem", label: "Thông tin thêm", type: "textarea", order: 4, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "comorbidities",
+          name: "Bệnh lý đi kèm",
+          order: 5,
+          collapsible: true,
+          fields: [
+            { id: "timMach", name: "timMach", label: "Tim mạch", type: "textarea", order: 1, required: false, width: "full" as const },
+            { id: "hoHap", name: "hoHap", label: "Hô hấp", type: "textarea", order: 2, required: false, width: "full" as const },
+            { id: "tieuHoa", name: "tieuHoa", label: "Tiêu hóa", type: "textarea", order: 3, required: false, width: "full" as const },
+            { id: "thanTietNieu", name: "thanTietNieu", label: "Thận - Tiết niệu", type: "textarea", order: 4, required: false, width: "full" as const },
+            { id: "thanKinh", name: "thanKinh", label: "Thần kinh", type: "textarea", order: 5, required: false, width: "full" as const },
+            { id: "coXuongKhop", name: "coXuongKhop", label: "Cơ xương khớp", type: "textarea", order: 6, required: false, width: "full" as const },
+            { id: "noiTiet", name: "noiTiet", label: "Nội tiết", type: "textarea", order: 7, required: false, width: "full" as const },
+            { id: "khac", name: "khac", label: "Khác", type: "textarea", order: 8, required: false, width: "full" as const },
+          ],
+        },
+        {
+          id: "labs",
+          name: "Cận lâm sàng",
+          order: 6,
+          collapsible: false,
+          fields: [
+            { id: "xuongQuyet", name: "xuongQuyet", label: "Xương quyết - Electrolyte", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "mauCongThuc", name: "mauCongThuc", label: "Máu công thức", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "dongMach", name: "dongMach", label: "Đông máu", type: "textarea", order: 3, required: true, width: "full" as const },
+            { id: "sieuAm", name: "sieuAm", label: "Siêu âm", type: "textarea", order: 4, required: true, width: "full" as const },
+            { id: "chieuXQuyen", name: "chieuXQuyen", label: "Chiếu X-quẹng", type: "textarea", order: 5, required: true, width: "full" as const },
+            { id: "ecg", name: "ecg", label: "ECG", type: "textarea", order: 6, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "anesthesia-plan",
+          name: "Kế hoạch gây mê",
+          order: 7,
+          collapsible: false,
+          fields: [
+            { id: "duKien", name: "duKien", label: "Dự kiến gây mê", type: "textarea", order: 1, required: true, width: "full" as const },
+            { id: "thuocDuKien", name: "thuocDuKien", label: "Thuốc dự kiến", type: "textarea", order: 2, required: true, width: "full" as const },
+            { id: "doiPhongBienChung", name: "doiPhongBienChung", label: "Đối phó biến chứng", type: "textarea", order: 3, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "intra-op",
+          name: "Trong mổ",
+          order: 8,
+          collapsible: false,
+          repeatable: true,
+          fields: [
+            { id: "gio", name: "gio", label: "Giờ", type: "datetime", order: 1, required: true, width: "quarter" as const },
+            { id: "mach", name: "mach", label: "Mạch", type: "text", order: 2, required: true, width: "quarter" as const },
+            { id: "ha", name: "ha", label: "HA", type: "text", order: 3, required: true, width: "quarter" as const },
+            { id: "spo2", name: "spo2", label: "SpO2", type: "text", order: 4, required: true, width: "quarter" as const },
+            { id: "etco2", name: "etco2", label: "EtCO2", type: "text", order: 5, required: true, width: "quarter" as const },
+            { id: "thuoc", name: "thuoc", label: "Thuốc đã dùng", type: "textarea", order: 6, required: true, width: "full" as const },
+            { id: "bienChung", name: "bienChung", label: "Biến chứng", type: "textarea", order: 7, required: true, width: "full" as const },
+          ],
+        },
+        {
+          id: "post-op",
+          name: "Sau mổ",
+          order: 9,
+          collapsible: false,
+          fields: [
+            { id: "vaoPhongHoiSucc", name: "vaoPhongHoiSucc", label: "Vào phòng hồi sức", type: "datetime", order: 1, required: true, width: "half" as const },
+            { id: "triTuc", name: "triTuc", label: "Tri giác", type: "select", order: 2, required: true, width: "half" as const, options: [
+              { value: "totoan", label: "Tỉnh táo" },
+              { value: "say", label: "Say" },
+              { value: "vay", label: "Vày" },
+            ] },
+            { id: "tuTheRa", name: "tuTheRa", label: "Tình trạng ra phòng", type: "textarea", order: 3, required: true, width: "full" as const },
+            { id: "chiDan", name: "chiDan", label: "Chỉ định", type: "textarea", order: 4, required: true, width: "full" as const },
+          ],
+        },
+      ],
+    },
+    settings: { allowPartialSave: true, requireSignature: true },
+    exportConfig: { includeTimestamp: true, includeSignature: true },
+    createdBy: "system",
+  },
+]
+
+export async function seedTemplates() {
+  const db = getDb()
+
+  console.log('Seeding form templates...')
+
+  for (const template of templates) {
+    try {
+      await db.insert(formTemplates).values(template).onConflictDoNothing()
+      console.log(`✓ Seeded template: ${template.name}`)
+    } catch (error) {
+      console.error(`✗ Failed to seed template ${template.name}:`, error)
+    }
+  }
+
+  console.log('Seeding complete!')
+  await process.exit(0)
+}
+
+// Run if called directly
+if (import.meta.main) {
+  seedTemplates()
+}

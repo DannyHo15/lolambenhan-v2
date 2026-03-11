@@ -1,0 +1,137 @@
+version: "3.9"
+
+# Production Docker Compose - uses pre-built images from GitHub Container Registry
+# Usage: docker compose -f docker-compose.prod.yml up -d
+
+services:
+  # ============================================
+  # DATABASE
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: lolambenhan-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-lolambenhan}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      POSTGRES_DB: ${DB_NAME:-lolambenhan}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-lolambenhan}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # No external ports in production - only internal network
+    # expose:
+    #   - "5432"
+
+  # ============================================
+  # REDIS (Cache)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: lolambenhan-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # No external ports in production
+    # expose:
+    #   - "6379"
+
+  # ============================================
+  # API (Bun + Elysia)
+  # ============================================
+  api:
+    image: ${API_IMAGE:-ghcr.io/danny2384/lolambenhan-v2/api:latest}
+    container_name: lolambenhan-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-lolambenhan}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-lolambenhan}
+      REDIS_URL: redis://redis:6379
+      PORT: 3002
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
+      ADMIN_TOKEN_SECRET: ${ADMIN_TOKEN_SECRET:?ADMIN_TOKEN_SECRET is required}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-hoichan}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # No external ports - use reverse proxy
+    expose:
+      - "3002"
+
+  # ============================================
+  # WEB (Next.js)
+  # ============================================
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/danny2384/lolambenhan-v2/web:latest}
+    container_name: lolambenhan-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # No external ports - use reverse proxy
+    expose:
+      - "3000"
+
+  # ============================================
+  # REVERSE PROXY (Traefik)
+  # ============================================
+  traefik:
+    image: traefik:v3
+    container_name: lolambenhan-traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    labels:
+      - "traefik.enable=true"
+      # Dashboard (optional - secure in production!)
+      # - "traefik.http.routers.traefik.rule=Host(`traefik.yourdomain.com`)"
+      # - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+
+volumes:
+  postgres_data:
+  redis_data:
+  traefik_letsencrypt:
+
+networks:
+  default:
+    name: lolambenhan-network

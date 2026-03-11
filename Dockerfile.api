@@ -1,0 +1,54 @@
+# ============================================
+# LoLamBenhAn API - Bun + Elysia
+# ============================================
+
+# ---- Base ----
+FROM oven/bun:1-alpine AS base
+RUN apk add --no-cache curl
+WORKDIR /app
+
+# ---- Install Dependencies ----
+FROM base AS deps
+COPY package.json bun.lockb ./
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/config/package.json ./packages/config/
+COPY apps/api/package.json ./apps/api/
+
+RUN bun install --frozen-lockfile
+
+# ---- Build ----
+FROM base AS build
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
+COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
+COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+
+COPY packages/shared ./packages/shared
+COPY packages/config ./packages/config
+COPY apps/api ./apps/api
+COPY package.json bun.lockb tsconfig.json ./
+
+WORKDIR /app/apps/api
+RUN bun run db:generate
+
+# ---- Production ----
+FROM base AS production
+WORKDIR /app
+
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/packages ./packages
+COPY --from=build /app/apps/api ./apps/api
+COPY --from=build /app/package.json ./
+COPY --from=build /app/tsconfig.json ./
+
+WORKDIR /app/apps/api
+
+ENV NODE_ENV=production
+ENV PORT=3002
+
+EXPOSE 3002
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:3002/health || exit 1
+
+CMD ["bun", "run", "start"]

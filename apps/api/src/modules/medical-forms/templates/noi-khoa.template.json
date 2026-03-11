@@ -1,0 +1,583 @@
+{
+  "id": "noi-khoa-v1",
+  "name": "Phiếu Khám Nội Khoa",
+  "specialty": "noi-khoa",
+  "version": "1.0.0",
+  "description": "Phiếu khám bệnh nội khoa tổng quát",
+  "status": "active",
+  "tags": ["noi-khoa", "kham-benh", "tu-van"],
+  "metadata": {
+    "createdBy": "admin",
+    "createdAt": "2025-01-01T00:00:00Z",
+    "department": "internal-medicine",
+    "language": "vi"
+  },
+  "sections": [
+    {
+      "id": "patient-info",
+      "name": "Thông Tin Bệnh Nhân",
+      "order": 1,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "patient-code",
+          "name": "patientCode",
+          "label": "Mã Bệnh Nhân",
+          "type": "text",
+          "order": 1,
+          "required": true,
+          "readonly": true,
+          "width": "half",
+          "placeholder": "BN-XXXXX"
+        },
+        {
+          "id": "full-name",
+          "name": "fullName",
+          "label": "Họ và Tên",
+          "type": "text",
+          "order": 2,
+          "required": true,
+          "width": "half",
+          "placeholder": "Nhập họ và tên đầy đủ"
+        },
+        {
+          "id": "date-of-birth",
+          "name": "dateOfBirth",
+          "label": "Ngày Sinh",
+          "type": "date",
+          "order": 3,
+          "required": true,
+          "width": "third",
+          "dateFormat": "DD/MM/YYYY",
+          "maxDate": "{{today}}"
+        },
+        {
+          "id": "gender",
+          "name": "gender",
+          "label": "Giới Tính",
+          "type": "radio",
+          "order": 4,
+          "required": true,
+          "width": "third",
+          "options": [
+            { "value": "male", "label": "Nam" },
+            { "value": "female", "label": "Nữ" },
+            { "value": "other", "label": "Khác" }
+          ],
+          "columns": 3
+        },
+        {
+          "id": "phone",
+          "name": "phone",
+          "label": "Số Điện Thoại",
+          "type": "text",
+          "order": 5,
+          "required": true,
+          "width": "third",
+          "pattern": "^(\\+84|0)\\d{9,10}$",
+          "patternMessage": "Số điện thoại không hợp lệ",
+          "placeholder": "09xxxxxxxxx"
+        },
+        {
+          "id": "email",
+          "name": "email",
+          "label": "Email",
+          "type": "text",
+          "order": 6,
+          "required": false,
+          "width": "half",
+          "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+          "patternMessage": "Email không hợp lệ",
+          "placeholder": "email@example.com"
+        },
+        {
+          "id": "address",
+          "name": "address",
+          "label": "Địa Chỉ",
+          "type": "textarea",
+          "order": 7,
+          "required": true,
+          "width": "full",
+          "minLength": 10,
+          "maxLength": 500,
+          "placeholder": "Nhập địa chỉ chi tiết"
+        },
+        {
+          "id": "insurance",
+          "name": "insurance",
+          "label": "Có Bảo Hiểm Y Tế?",
+          "type": "radio",
+          "order": 8,
+          "required": true,
+          "width": "half",
+          "options": [
+            { "value": "yes", "label": "Có" },
+            { "value": "no", "label": "Không" }
+          ]
+        },
+        {
+          "id": "insurance-number",
+          "name": "insuranceNumber",
+          "label": "Mã BHYT",
+          "type": "text",
+          "order": 9,
+          "required": false,
+          "width": "half",
+          "conditionalDisplay": {
+            "operator": "AND",
+            "conditions": [
+              {
+                "fieldId": "insurance",
+                "operator": "equals",
+                "value": "yes"
+              }
+            ]
+          },
+          "pattern": "^[A-Z]{2}\\d{2}\\d{2}\\d{6}$",
+          "patternMessage": "Mã BHYT không hợp lệ (VD: TE95H123456)",
+          "placeholder": "TE95H123456"
+        }
+      ]
+    },
+    {
+      "id": "chief-complaint",
+      "name": "Lý Do Đến Khám",
+      "order": 2,
+      "collapsible": true,
+      "fields": [
+        {
+          "id": "complaint",
+          "name": "complaint",
+          "label": "Triệu Chứng Chính",
+          "type": "textarea",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "minLength": 10,
+          "maxLength": 1000,
+          "placeholder": "Mô tả triệu chứng chính của bệnh nhân"
+        },
+        {
+          "id": "symptom-duration",
+          "name": "symptomDuration",
+          "label": "Thời Gian Bệnh",
+          "type": "text",
+          "order": 2,
+          "required": true,
+          "width": "half",
+          "placeholder": "VD: 3 ngày, 1 tuần, 2 tháng"
+        },
+        {
+          "id": "severity",
+          "name": "severity",
+          "label": "Mức Độ",
+          "type": "select",
+          "order": 3,
+          "required": true,
+          "width": "half",
+          "options": [
+            { "value": "mild", "label": "Nhẹ" },
+            { "value": "moderate", "label": "Trung bình" },
+            { "value": "severe", "label": "Nặng" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "medical-history",
+      "name": "Tiền Sử Bệnh Lý",
+      "order": 3,
+      "collapsible": true,
+      "collapsedByDefault": true,
+      "fields": [
+        {
+          "id": "current-illness",
+          "name": "currentIllness",
+          "label": "Bệnh Hiện Tại",
+          "type": "textarea",
+          "order": 1,
+          "required": false,
+          "width": "full",
+          "maxLength": 2000
+        },
+        {
+          "id": "past-illness",
+          "name": "pastIllness",
+          "label": "Bệnh Trước Đây",
+          "type": "textarea",
+          "order": 2,
+          "required": false,
+          "width": "full",
+          "maxLength": 2000
+        },
+        {
+          "id": "surgery-history",
+          "name": "surgeryHistory",
+          "label": "Tiền Sử Phẫu Thuật",
+          "type": "textarea",
+          "order": 3,
+          "required": false,
+          "width": "full",
+          "maxLength": 2000
+        },
+        {
+          "id": "allergies",
+          "name": "allergies",
+          "label": "Dị Ứng",
+          "type": "textarea",
+          "order": 4,
+          "required": true,
+          "width": "full",
+          "placeholder": "Dị ứng thuốc, thực phẩm, v.v.",
+          "maxLength": 1000
+        },
+        {
+          "id": "family-history",
+          "name": "familyHistory",
+          "label": "Tiền Sử Gia Đình",
+          "type": "textarea",
+          "order": 5,
+          "required": false,
+          "width": "full",
+          "maxLength": 2000
+        }
+      ]
+    },
+    {
+      "id": "vital-signs",
+      "name": "Dấu Hiệu Sinh Tồn",
+      "order": 4,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "temperature",
+          "name": "temperature",
+          "label": "Nhiệt Độ (°C)",
+          "type": "number",
+          "order": 1,
+          "required": true,
+          "width": "quarter",
+          "min": 35,
+          "max": 42,
+          "step": 0.1,
+          "unit": "°C",
+          "defaultValue": 36.5
+        },
+        {
+          "id": "blood-pressure-systolic",
+          "name": "bloodPressureSystolic",
+          "label": "Huyết Áp Tâm Thu (mmHg)",
+          "type": "number",
+          "order": 2,
+          "required": true,
+          "width": "quarter",
+          "min": 70,
+          "max": 200,
+          "unit": "mmHg"
+        },
+        {
+          "id": "blood-pressure-diastolic",
+          "name": "bloodPressureDiastolic",
+          "label": "Huyết Áp Tâm Trương (mmHg)",
+          "type": "number",
+          "order": 3,
+          "required": true,
+          "width": "quarter",
+          "min": 40,
+          "max": 130,
+          "unit": "mmHg"
+        },
+        {
+          "id": "heart-rate",
+          "name": "heartRate",
+          "label": "Nhịp Tim (lần/phút)",
+          "type": "number",
+          "order": 4,
+          "required": true,
+          "width": "quarter",
+          "min": 40,
+          "max": 150,
+          "unit": "lần/phút"
+        },
+        {
+          "id": "respiratory-rate",
+          "name": "respiratoryRate",
+          "label": "Nhịp Thở (lần/phút)",
+          "type": "number",
+          "order": 5,
+          "required": true,
+          "width": "quarter",
+          "min": 8,
+          "max": 35,
+          "unit": "lần/phút"
+        },
+        {
+          "id": "spo2",
+          "name": "spo2",
+          "label": "SpO2 (%)",
+          "type": "number",
+          "order": 6,
+          "required": true,
+          "width": "quarter",
+          "min": 70,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "defaultValue": 98
+        },
+        {
+          "id": "weight",
+          "name": "weight",
+          "label": "Cân Nặng (kg)",
+          "type": "number",
+          "order": 7,
+          "required": true,
+          "width": "quarter",
+          "min": 1,
+          "max": 300,
+          "step": 0.1,
+          "unit": "kg"
+        },
+        {
+          "id": "height",
+          "name": "height",
+          "label": "Chiều Cao (cm)",
+          "type": "number",
+          "order": 8,
+          "required": true,
+          "width": "quarter",
+          "min": 30,
+          "max": 250,
+          "unit": "cm"
+        },
+        {
+          "id": "bmi",
+          "name": "bmi",
+          "label": "BMI",
+          "type": "number",
+          "order": 9,
+          "required": false,
+          "width": "quarter",
+          "readonly": true,
+          "calculated": true,
+          "calculation": "{{weight}} / ({{height}}/100)^2",
+          "unit": "kg/m²"
+        }
+      ]
+    },
+    {
+      "id": "physical-exam",
+      "name": "Khám Thể Lạc",
+      "order": 5,
+      "collapsible": true,
+      "fields": [
+        {
+          "id": "general-appearance",
+          "name": "generalAppearance",
+          "label": "Tình Trạng Chung",
+          "type": "textarea",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "maxLength": 500
+        },
+        {
+          "id": "head-neck",
+          "name": "headNeck",
+          "label": "Đầu - Cổ",
+          "type": "textarea",
+          "order": 2,
+          "required": false,
+          "width": "full",
+          "maxLength": 500
+        },
+        {
+          "id": "cardiovascular",
+          "name": "cardiovascular",
+          "label": "Tim Mạch",
+          "type": "textarea",
+          "order": 3,
+          "required": true,
+          "width": "full",
+          "maxLength": 500
+        },
+        {
+          "id": "respiratory",
+          "name": "respiratory",
+          "label": "Hô Hấp",
+          "type": "textarea",
+          "order": 4,
+          "required": true,
+          "width": "full",
+          "maxLength": 500
+        },
+        {
+          "id": "abdomen",
+          "name": "abdomen",
+          "label": "Bụng",
+          "type": "textarea",
+          "order": 5,
+          "required": true,
+          "width": "full",
+          "maxLength": 500
+        },
+        {
+          "id": "musculoskeletal",
+          "name": "musculoskeletal",
+          "label": "Cơ Xương Khớp",
+          "type": "textarea",
+          "order": 6,
+          "required": false,
+          "width": "full",
+          "maxLength": 500
+        },
+        {
+          "id": "neurological",
+          "name": "neurological",
+          "label": "Thần Kinh",
+          "type": "textarea",
+          "order": 7,
+          "required": false,
+          "width": "full",
+          "maxLength": 500
+        },
+        {
+          "id": "skin",
+          "name": "skin",
+          "label": "Da",
+          "type": "textarea",
+          "order": 8,
+          "required": false,
+          "width": "full",
+          "maxLength": 500
+        }
+      ]
+    },
+    {
+      "id": "diagnosis",
+      "name": "Chẩn Đoán",
+      "order": 6,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "primary-diagnosis",
+          "name": "primaryDiagnosis",
+          "label": "Chẩn Đoán Chính",
+          "type": "text",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "placeholder": "Nhập chẩn đoán chính"
+        },
+        {
+          "id": "icd-code",
+          "name": "icdCode",
+          "label": "Mã ICD-10",
+          "type": "text",
+          "order": 2,
+          "required": true,
+          "width": "half",
+          "pattern": "^[A-Z]\\d{2}(\\.\\d{1,2})?$",
+          "patternMessage": "Mã ICD-10 không hợp lệ (VD: J18.9)",
+          "placeholder": "J18.9"
+        },
+        {
+          "id": "secondary-diagnosis",
+          "name": "secondaryDiagnosis",
+          "label": "Chẩn Đoán Kèm Theo",
+          "type": "textarea",
+          "order": 3,
+          "required": false,
+          "width": "full",
+          "maxLength": 1000
+        }
+      ]
+    },
+    {
+      "id": "treatment-plan",
+      "name": "Kế Hoạch Điều Trị",
+      "order": 7,
+      "collapsible": false,
+      "fields": [
+        {
+          "id": "treatment",
+          "name": "treatment",
+          "label": "Phương Pháp Điều Trị",
+          "type": "textarea",
+          "order": 1,
+          "required": true,
+          "width": "full",
+          "maxLength": 2000
+        },
+        {
+          "id": "medications",
+          "name": "medications",
+          "label": "Thuốc",
+          "type": "textarea",
+          "order": 2,
+          "required": false,
+          "width": "full",
+          "maxLength": 2000,
+          "placeholder": "Liệt kê tên thuốc, liều dùng, cách dùng"
+        },
+        {
+          "id": "tests",
+          "name": "tests",
+          "label": "Xét Nghiệm Cần Làm",
+          "type": "checkbox",
+          "order": 3,
+          "required": false,
+          "width": "full",
+          "multiple": true,
+          "columns": 3,
+          "options": [
+            { "value": "cbc", "label": "Máu công thức" },
+            { "value": "urine", "label": "Nước tiểu" },
+            { "value": "glucose", "label": "Đường huyết" },
+            { "value": "liver", "label": "Chức năng gan" },
+            { "value": "kidney", "label": "Chức năng thận" },
+            { "value": "lipid", "label": "Mỡ máu" },
+            { "value": "xray", "label": "X-quang" },
+            { "value": "ultrasound", "label": "Siêu âm" },
+            { "value": "ecg", "label": "Điện tâm đồ" }
+          ]
+        },
+        {
+          "id": "follow-up",
+          "name": "followUp",
+          "label": "Tái Khám",
+          "type": "date",
+          "order": 4,
+          "required": false,
+          "width": "half",
+          "dateFormat": "DD/MM/YYYY",
+          "minDate": "{{today}}"
+        },
+        {
+          "id": "notes",
+          "name": "notes",
+          "label": "Ghi Chú Khác",
+          "type": "textarea",
+          "order": 5,
+          "required": false,
+          "width": "full",
+          "maxLength": 1000
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "allowPartialSave": true,
+    "requireSignature": true,
+    "autoSaveInterval": 30,
+    "confirmationRequired": true,
+    "submitButtonText": "Lưu Phiếu Khám",
+    "showProgress": true
+  },
+  "exportConfig": {
+    "docxTemplate": "templates/noi-khoa.docx",
+    "pdfTemplate": "templates/noi-khoa.pdf",
+    "includeTimestamp": true,
+    "includeSignature": true
+  }
+}
