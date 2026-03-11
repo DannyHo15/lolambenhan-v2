@@ -2,10 +2,13 @@
  * Chat Use Cases
  * Contains business logic for AI chat operations
  */
-import type { ChatMessage, ChatResponse } from "../../domain/entities/chat.entity"
+import type {
+  ChatMessage,
+  ChatResponse,
+} from "../../domain/entities/chat.entity";
 
 export interface IChatProvider {
-  chat(messages: ChatMessage[]): Promise<ChatResponse>
+  chat(messages: ChatMessage[]): Promise<ChatResponse>;
 }
 
 export class ChatUseCase {
@@ -13,9 +16,10 @@ export class ChatUseCase {
 
   async execute(messages: ChatMessage[]): Promise<ChatResponse> {
     if (!Array.isArray(messages) || messages.length === 0) {
-      throw new Error("Messages must be a non-empty array")
+      console.log("[ChatUseCase] Invalid messages input:", messages);
+      throw new Error("Messages must be a non-empty array");
     }
 
-    return this.chatProvider.chat(messages)
+    return this.chatProvider.chat(messages);
   }
 }
