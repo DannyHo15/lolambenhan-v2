@@ -141,6 +141,7 @@ jobs:
           labels: ${{ steps.meta-web.outputs.labels }}
           build-args: |
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_GLM_API_KEY=${{ secrets.NEXT_PUBLIC_GLM_API_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
