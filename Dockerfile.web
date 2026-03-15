@@ -16,7 +16,9 @@ WORKDIR /app
 
 # Declare build arguments for Next.js public env vars
 ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_GLM_API_KEY
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_GLM_API_KEY=${NEXT_PUBLIC_GLM_API_KEY}
 
 COPY --from=builder /app/out/json/ .
 COPY --from=builder /app/out/bun.lock ./bun.lock
