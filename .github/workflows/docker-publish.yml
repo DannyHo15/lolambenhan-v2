@@ -18,6 +18,19 @@ env:
   API_IMAGE_NAME: ${{ github.repository }}/api
   WEB_IMAGE_NAME: ${{ github.repository }}/web
 
+# Required Secrets (configure in Settings → Secrets and variables → Actions):
+# - DATABASE_URL: PostgreSQL connection string
+# - JWT_SECRET: JWT signing secret (min 32 characters)
+# - ADMIN_PASSWORD: Admin login password
+# - ADMIN_TOKEN_SECRET: Admin token secret
+# - GEMINI_API_KEY: Google Gemini API key
+# - GROQ_API_KEY: Groq API key (optional)
+# - GOOGLE_CLIENT_ID: Google OAuth client ID
+# - CLOUDINARY_CLOUD_NAME: Cloudinary cloud name
+# - CLOUDINARY_API_KEY: Cloudinary API key
+# - CLOUDINARY_API_SECRET: Cloudinary API secret
+# - NEXT_PUBLIC_API_URL: Frontend API URL
+
 jobs:
   # ============================================
   # Build and Push API Image
@@ -65,6 +78,18 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-api.outputs.tags }}
           labels: ${{ steps.meta-api.outputs.labels }}
+          build-args: |
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            PORT=3002
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+            ADMIN_TOKEN_SECRET=${{ secrets.ADMIN_TOKEN_SECRET }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
