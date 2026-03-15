@@ -16,6 +16,7 @@ COPY --from=builder /app/out/full/ .
 FROM oven/bun:1 AS runner
 WORKDIR /app
 COPY --from=installer /app .
+WORKDIR /app/apps/api
 EXPOSE 3002
-# Chạy trực tiếp file entrypoint của Elysia
-CMD ["bun", "run", "start"]
+# Chạy trực tiếp file entrypoint của Elysia từ thư mục apps/api
+CMD ["bun", "run", "src/index.ts"]
