@@ -1,11 +1,16 @@
 # File: apps/api/Dockerfile
+# ============================================
+# Stage 1: Prune dependencies
+# ============================================
 FROM oven/bun:1 AS builder
 WORKDIR /app
 RUN bun add -g turbo
 COPY . .
-# Lọc riêng phần của Elysia (giả sử tên app là "api")
 RUN turbo prune --scope=@lolambenhan/api --docker
 
+# ============================================
+# Stage 2: Install dependencies
+# ============================================
 FROM oven/bun:1 AS installer
 WORKDIR /app
 COPY --from=builder /app/out/json/ .
@@ -13,10 +18,40 @@ COPY --from=builder /app/out/bun.lock ./bun.lock
 RUN bun install
 COPY --from=builder /app/out/full/ .
 
+# ============================================
+# Stage 3: Production runner
+# ============================================
 FROM oven/bun:1 AS runner
 WORKDIR /app
 COPY --from=installer /app .
 WORKDIR /app/apps/api
+
+# Declare build arguments (passed from GitHub Actions)
+ARG DATABASE_URL
+ARG PORT=3002
+ARG JWT_SECRET
+ARG ADMIN_PASSWORD
+ARG ADMIN_TOKEN_SECRET
+ARG GEMINI_API_KEY
+ARG GROQ_API_KEY
+ARG GOOGLE_CLIENT_ID
+ARG CLOUDINARY_CLOUD_NAME
+ARG CLOUDINARY_API_KEY
+ARG CLOUDINARY_API_SECRET
+
+# Create .env file from build args
+RUN echo "# Auto-generated .env file" > .env && \
+    echo "DATABASE_URL=${DATABASE_URL}" >> .env && \
+    echo "PORT=${PORT}" >> .env && \
+    echo "JWT_SECRET=${JWT_SECRET}" >> .env && \
+    echo "ADMIN_PASSWORD=${ADMIN_PASSWORD}" >> .env && \
+    echo "ADMIN_TOKEN_SECRET=${ADMIN_TOKEN_SECRET}" >> .env && \
+    echo "GEMINI_API_KEY=${GEMINI_API_KEY}" >> .env && \
+    echo "GROQ_API_KEY=${GROQ_API_KEY}" >> .env && \
+    echo "GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}" >> .env && \
+    echo "CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}" >> .env && \
+    echo "CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}" >> .env && \
+    echo "CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}" >> .env
+
 EXPOSE 3002
-# Chạy trực tiếp file entrypoint của Elysia từ thư mục apps/api
 CMD ["bun", "run", "src/index.ts"]
