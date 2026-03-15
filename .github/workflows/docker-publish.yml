@@ -6,7 +6,7 @@ on:
       - main
       - master
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
     branches:
       - main
@@ -46,6 +46,7 @@ jobs:
         id: meta-api
         uses: docker/metadata-action@v5
         with:
+          platforms: linux/arm64
           images: ${{ env.REGISTRY }}/${{ env.API_IMAGE_NAME }}
           tags: |
             type=ref,event=branch
@@ -93,6 +94,7 @@ jobs:
         id: meta-web
         uses: docker/metadata-action@v5
         with:
+          platforms: linux/arm64
           images: ${{ env.REGISTRY }}/${{ env.WEB_IMAGE_NAME }}
           tags: |
             type=ref,event=branch
