@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, X } from "lucide-react";
+import { Send, X, Sparkles, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { marked } from "marked";
@@ -16,23 +16,138 @@ interface ChatMessage {
 let messageIdCounter = 0;
 const generateMessageId = () => `msg-${Date.now()}-${++messageIdCounter}`;
 
-const SYSTEM_PROMPT = `
-Bạn tên là LÒ. Bạn là người máy hỗ trợ hoàn thành bệnh án.
-Mình có thể tìm lý thuyết bệnh học, hỗ trợ biện luận và đưa ra ý kiến để giúp bạn hoàn thành bệnh án tốt nhất.
-`;
+const SYSTEM_PROMPT = `Bạn tên là LÒ - trợ lý AI hỗ trợ hoàn thành bệnh án y khoa.
+
+## Nhiệm vụ của bạn:
+1. Hỗ trợ biện luận chẩn đoán dựa trên dữ liệu bệnh án
+2. Gợi ý nội dung cho các trường trong bệnh án
+3. Đưa ra ý kiến chuyên môn về bệnh lý
+
+## Khi người dùng yêu cầu gợi ý:
+Trả lời theo định dạng chuẩn để dễ điền vào form:
+
+**GỢI Ý CHO BỆNH ÁN:**
+
+I. Hỏi bệnh
+1. Lý do vào viện: [nội dung]
+2. Bệnh sử: [nội dung]
+3. Tiền sử: [nội dung]
+
+II. Khám bệnh
+1. Toàn trạng: [nội dung]
+2. Các cơ quan:
+   - Tuần hoàn: [nội dung]
+   - Hô hấp: [nội dung]
+   - Tiêu hoá: [nội dung]
+   - Thận: [nội dung]
+   - Thần kinh: [nội dung]
+   - Cơ xương khớp: [nội dung]
+
+III. Kết luận
+1. Tóm tắt bệnh án: [nội dung]
+2. Chẩn đoán sơ bộ: [nội dung]
+3. Chẩn đoán phân biệt: [nội dung]
+4. Chẩn đoán xác định: [nội dung]
+5. Điều trị: [nội dung]
+6. Tiên lượng: [nội dung]
+
+## Khi người dùng hỏi về một trường cụ thể:
+Trả lời ngắn gọn, tập trung vào trường đó và đưa ra 2-3 gợi ý cụ thể.
+
+## Lưu ý:
+- Sử dụng ngôn ngữ y khoa chuẩn tiếng Việt
+- Tham khảo dữ liệu bệnh án hiện tại nếu có
+- Luôn giải thích lý do cho các gợi ý`;
 
 const GLM_API_KEY = process.env.NEXT_PUBLIC_GLM_API_KEY || "";
 
+// Field labels mapping for display
+const FIELD_LABELS: Record<string, string> = {
+  hoten: "Họ và tên",
+  gioitinh: "Giới tính",
+  namsinh: "Năm sinh",
+  dantoc: "Dân tộc",
+  nghenghiep: "Nghề nghiệp",
+  diachi: "Địa chỉ",
+  ngaygio: "Ngày giờ vào viện",
+  lydo: "Lý do vào viện",
+  benhsu: "Bệnh sử",
+  tiensu: "Tiền sử",
+  tongtrang: "Toàn trạng",
+  timmach: "Tim mạch",
+  hopho: "Hô hấp",
+  tieuhoa: "Tiêu hoá",
+  than: "Thận - Tiết niệu",
+  thankinh: "Thần kinh",
+  cokhop: "Cơ xương khớp",
+  coquankhac: "Cơ quan khác",
+  tomtat: "Tóm tắt bệnh án",
+  chandoanso: "Chẩn đoán sơ bộ",
+  chandoanpd: "Chẩn đoán phân biệt",
+  chandoanxacdinh: "Chẩn đoán xác định",
+  cls_thuongquy: "CLS thường quy",
+  cls_chuandoan: "CLS chẩn đoán",
+  ketqua: "Kết quả CLS",
+  huongdieutri: "Hướng điều trị",
+  dieutri: "Điều trị cụ thể",
+  tienluong: "Tiên lượng",
+  bienluan: "Biện luận",
+};
+
+interface FormData {
+  hoten?: string;
+  gioitinh?: string;
+  namsinh?: string;
+  tuoi?: string;
+  dantoc?: string;
+  nghenghiep?: string;
+  diachi?: string;
+  ngaygio?: string;
+  lydo?: string;
+  benhsu?: string;
+  tiensu?: string;
+  mach?: string;
+  nhietdo?: string;
+  ha_tren?: string;
+  ha_duoi?: string;
+  nhiptho?: string;
+  chieucao?: string;
+  cannang?: string;
+  bmi?: string;
+  phanloai?: string;
+  tongtrang?: string;
+  timmach?: string;
+  hopho?: string;
+  tieuhoa?: string;
+  than?: string;
+  thankinh?: string;
+  cokhop?: string;
+  coquankhac?: string;
+  tomtat?: string;
+  chandoanso?: string;
+  chandoanpd?: string;
+  cls_thuongquy?: string;
+  cls_chuandoan?: string;
+  ketqua?: string;
+  chandoanxacdinh?: string;
+  huongdieutri?: string;
+  dieutri?: string;
+  tienluong?: string;
+  bienluan?: string;
+}
+
 interface AiChatPanelProps {
-  formContext?: { tomtat: string; chandoanso: string };
+  formContext?: FormData;
   apiUrl?: string;
   apiKey?: string;
+  onApplySuggestion?: (field: string, value: string) => void;
 }
 
 export function AiChatPanel({
   formContext,
   apiUrl = "https://api.z.ai/api/coding/paas/v4/chat/completions",
   apiKey = GLM_API_KEY,
+  onApplySuggestion,
 }: AiChatPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -52,6 +167,43 @@ export function AiChatPanel({
     scrollToBottom();
   }, [messages, streamingMessage]);
 
+  // Build context string from form data
+  const buildFormContextString = useCallback(() => {
+    if (!formContext) return "";
+
+    const sections: string[] = ["\n## DỮ LIỆU BỆNH ÁN HIỆN TẠI:\n"];
+
+    // Group fields by section
+    const hanhchinh = ["hoten", "gioitinh", "namsinh", "dantoc", "nghenghiep", "diachi", "ngaygio"];
+    const hoibenh = ["lydo", "benhsu", "tiensu"];
+    const khamtongtrang = ["mach", "nhietdo", "ha_tren", "ha_duoi", "nhiptho", "chieucao", "cannang", "tongtrang"];
+    const coquan = ["timmach", "hopho", "tieuhoa", "than", "thankinh", "cokhop", "coquankhac"];
+    const ketluan = ["tomtat", "chandoanso", "chandoanpd", "chandoanxacdinh", "huongdieutri", "dieutri", "tienluong"];
+
+    const formatFields = (fields: string[], title: string) => {
+      const items = fields
+        .filter((f) => formContext[f as keyof FormData])
+        .map((f) => {
+          const value = formContext[f as keyof FormData];
+          return value ? `- ${FIELD_LABELS[f] || f}: ${value}` : null;
+        })
+        .filter(Boolean);
+
+      if (items.length > 0) {
+        return `\n### ${title}\n${items.join("\n")}`;
+      }
+      return "";
+    };
+
+    sections.push(formatFields(hanhchinh, "A. Hành chính"));
+    sections.push(formatFields(hoibenh, "B1. Hỏi bệnh"));
+    sections.push(formatFields(khamtongtrang, "B2. Toàn trạng & Dấu hiệu sinh tồn"));
+    sections.push(formatFields(coquan, "B3. Khám các cơ quan"));
+    sections.push(formatFields(ketluan, "C. Kết luận"));
+
+    return sections.filter(Boolean).join("\n");
+  }, [formContext]);
+
   const sendMessage = useCallback(async () => {
     const text = input.trim();
     if (!text || isLoading) return;
@@ -69,15 +221,12 @@ export function AiChatPanel({
       return;
     }
 
+    // Build user content with full form context
     let userContent = text;
-    if (formContext?.tomtat || formContext?.chandoanso) {
-      userContent = `
-DỮ LIỆU TỪ FORM (tham khảo khi trả lời):
-- Tóm tắt bệnh án: ${formContext.tomtat || "(chưa có)"}
-- Chẩn đoán sơ bộ: ${formContext.chandoanso || "(chưa có)"}
+    const formContextStr = buildFormContextString();
 
-Câu hỏi: ${text}
-`.trim();
+    if (formContextStr) {
+      userContent = `${formContextStr}\n\n---\n\n**Yêu cầu:** ${text}`;
     }
 
     setMessages((prev) => [...prev, { id: generateMessageId(), role: "user", content: text }]);
@@ -168,7 +317,7 @@ Câu hỏi: ${text}
       setIsLoading(false);
       abortControllerRef.current = null;
     }
-  }, [input, formContext, messages, apiKey, apiUrl, isLoading]);
+  }, [input, formContext, messages, apiKey, apiUrl, isLoading, buildFormContextString]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -184,6 +333,15 @@ Câu hỏi: ${text}
     };
   }, []);
 
+  // Quick action handlers
+  const handleQuickAction = (action: string) => {
+    setInput(action);
+    setTimeout(() => {
+      const event = new KeyboardEvent("keydown", { key: "Enter", bubbles: true });
+      document.activeElement?.dispatchEvent(event);
+    }, 100);
+  };
+
   return (
     <>
       {/* Toggle Button */}
@@ -198,7 +356,7 @@ Câu hỏi: ${text}
 
       {/* Chat Panel */}
       {isOpen && (
-        <div className="fixed bottom-16 right-4 z-40 w-80 h-96 bg-background rounded-lg shadow-xl border flex flex-col">
+        <div className="fixed bottom-16 right-4 z-40 w-96 h-[500px] bg-background rounded-lg shadow-xl border flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between border-b px-4 py-2 bg-muted rounded-t-lg">
             <span className="font-medium text-foreground">
@@ -217,6 +375,40 @@ Câu hỏi: ${text}
             </Button>
           </div>
 
+          {/* Quick Actions */}
+          <div className="border-b px-3 py-2 flex flex-wrap gap-2 bg-muted/50">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs h-7"
+              onClick={() => handleQuickAction("Gợi ý toàn bộ bệnh án dựa trên thông tin đã nhập")}
+              disabled={isLoading}
+            >
+              <Sparkles className="h-3 w-3 mr-1" />
+              Gợi ý toàn bộ
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs h-7"
+              onClick={() => handleQuickAction("Gợi ý chẩn đoán sơ bộ và chẩn đoán phân biệt")}
+              disabled={isLoading}
+            >
+              <FileText className="h-3 w-3 mr-1" />
+              Gợi ý chẩn đoán
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs h-7"
+              onClick={() => handleQuickAction("Gợi ý hướng điều trị và tiên lượng")}
+              disabled={isLoading}
+            >
+              <FileText className="h-3 w-3 mr-1" />
+              Gợi ý điều trị
+            </Button>
+          </div>
+
           {/* Messages */}
           <div className="flex-1 overflow-auto p-4 space-y-3">
             {messages
@@ -232,7 +424,7 @@ Câu hỏi: ${text}
                 >
                   {msg.role === "assistant" ? (
                     <div
-                      className="prose prose-sm max-w-none dark:prose-invert"
+                      className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2"
                       dangerouslySetInnerHTML={{
                         __html: DOMPurify.sanitize(marked.parse(msg.content) as string),
                       }}
@@ -246,7 +438,7 @@ Câu hỏi: ${text}
             {streamingMessage && (
               <div className="bg-muted rounded-lg px-3 py-2 mr-8">
                 <div
-                  className="prose prose-sm max-w-none dark:prose-invert"
+                  className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2"
                   dangerouslySetInnerHTML={{
                     __html: DOMPurify.sanitize(marked.parse(streamingMessage) as string),
                   }}

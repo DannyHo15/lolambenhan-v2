@@ -539,7 +539,15 @@ export default function NoiKhoaPage() {
 
       <PreviewModal isOpen={showPreview} onClose={() => setShowPreview(false)} htmlContent={previewHtml} />
 
-      <AiChatPanel formContext={{ tomtat: tomtatCombined, chandoanso: formData.chandoanso || "" }} />
+      <AiChatPanel
+        formContext={{
+          ...formData,
+          tomtat: tomtatCombined,
+          tuoi: calculated.tuoi,
+          bmi: calculated.bmi,
+          phanloai: calculated.phanloai,
+        }}
+      />
     </div>
   );
 }
