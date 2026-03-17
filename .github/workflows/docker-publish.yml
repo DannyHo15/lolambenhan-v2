@@ -168,8 +168,9 @@ jobs:
           version: "v1.29.0"
 
       - name: Setup Tailscale
-        uses: tailscale/github-action@v3
+        uses: tailscale/github-action@v4
         with:
+          ping: 100.91.144.18
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
@@ -177,6 +178,8 @@ jobs:
       - name: Configure kubectl for K3s
         env:
           KUBECONFIG_B64: ${{ secrets.KUBECONFIG }}
+          K3S_SERVER_IP: ${{ vars.K3S_SERVER_IP || '100.91.144.18' }}
+          CLUSTER_NAME: ${{ vars.K3S_CLUSTER_NAME || 'default' }}
         run: |
           mkdir -p ~/.kube
           # Strip whitespace and special chars like % from zsh output
@@ -187,6 +190,9 @@ jobs:
           fi
           echo "$KUBECONFIG_CLEAN" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
+
+          # Skip TLS verification for Tailscale IP (certificate doesn't include Tailscale IP)
+          kubectl config set-cluster $CLUSTER_NAME --insecure-skip-tls-verify=true --server=https://$K3S_SERVER_IP:6443
 
       - name: Deploy API to K3s
         run: |
