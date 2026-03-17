@@ -180,6 +180,7 @@ jobs:
           KUBECONFIG_B64: ${{ secrets.KUBECONFIG }}
           K3S_SERVER_IP: ${{ vars.K3S_SERVER_IP || '100.91.144.18' }}
           CLUSTER_NAME: ${{ vars.K3S_CLUSTER_NAME || 'default' }}
+          K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE || 'default' }}
         run: |
           mkdir -p ~/.kube
           # Strip whitespace and special chars like % from zsh output
@@ -194,21 +195,24 @@ jobs:
           # Skip TLS verification for Tailscale IP (certificate doesn't include Tailscale IP)
           kubectl config set-cluster $CLUSTER_NAME --insecure-skip-tls-verify=true --server=https://$K3S_SERVER_IP:6443
 
+          # Export namespace for subsequent steps
+          echo "K8S_NAMESPACE=$K8S_NAMESPACE" >> $GITHUB_ENV
+
       - name: Deploy API to K3s
         run: |
-          kubectl rollout restart deployment/lolambenhan-api -n $CLUSTER_NAME
-          kubectl rollout status deployment/lolambenhan-api -n $CLUSTER_NAME --timeout=300s
+          kubectl rollout restart deployment/lolambenhan-api -n $K8S_NAMESPACE
+          kubectl rollout status deployment/lolambenhan-api -n $K8S_NAMESPACE --timeout=300s
 
       - name: Deploy Web to K3s
         run: |
-          kubectl rollout restart deployment/lolambenhan-web -n $CLUSTER_NAME
-          kubectl rollout status deployment/lolambenhan-web -n $CLUSTER_NAME --timeout=300s
+          kubectl rollout restart deployment/lolambenhan-web -n $K8S_NAMESPACE
+          kubectl rollout status deployment/lolambenhan-web -n $K8S_NAMESPACE --timeout=300s
 
       - name: Verify deployments
         run: |
           echo "### K3s Deployment Status" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          kubectl get pods -n lolambenhan -o wide >> $GITHUB_STEP_SUMMARY
+          kubectl get pods -n $K8S_NAMESPACE -o wide >> $GITHUB_STEP_SUMMARY
 
   # ============================================
   # Summary
