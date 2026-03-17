@@ -175,9 +175,14 @@ jobs:
           tags: tag:ci
 
       - name: Configure kubectl for K3s
+        env:
+          KUBECONFIG_B64: ${{ secrets.KUBECONFIG }}
         run: |
           mkdir -p ~/.kube
-          echo "${{secrets.KUBECONFIG}}"
+          if ! echo "$KUBECONFIG_B64" | base64 -d > /dev/null 2>&1; then
+            echo "::error::KUBECONFIG secret không phải là chuỗi Base64 hợp lệ. Vui lòng kiểm tra lại."
+            exit 1
+          fi
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
