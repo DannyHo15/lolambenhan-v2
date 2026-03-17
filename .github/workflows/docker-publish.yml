@@ -165,7 +165,7 @@ jobs:
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
         with:
-          version: 'v1.29.0'
+          version: "v1.29.0"
 
       - name: Setup Tailscale
         uses: tailscale/github-action@v3
@@ -177,6 +177,7 @@ jobs:
       - name: Configure kubectl for K3s
         run: |
           mkdir -p ~/.kube
+          echo "${{secrets.KUBECONFIG}}"
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
