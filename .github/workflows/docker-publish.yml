@@ -179,11 +179,13 @@ jobs:
           KUBECONFIG_B64: ${{ secrets.KUBECONFIG }}
         run: |
           mkdir -p ~/.kube
-          if ! echo "$KUBECONFIG_B64" | base64 -d > /dev/null 2>&1; then
+          # Strip whitespace and special chars like % from zsh output
+          KUBECONFIG_CLEAN=$(echo "$KUBECONFIG_B64" | tr -d '[:space:]%')
+          if ! echo "$KUBECONFIG_CLEAN" | base64 -d > /dev/null 2>&1; then
             echo "::error::KUBECONFIG secret không phải là chuỗi Base64 hợp lệ. Vui lòng kiểm tra lại."
             exit 1
           fi
-          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          echo "$KUBECONFIG_CLEAN" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
       - name: Deploy API to K3s
