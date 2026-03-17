@@ -30,6 +30,14 @@ env:
 # - CLOUDINARY_API_KEY: Cloudinary API key
 # - CLOUDINARY_API_SECRET: Cloudinary API secret
 # - NEXT_PUBLIC_API_URL: Frontend API URL
+#
+# K3s Deployment (optional):
+# - KUBECONFIG: Base64 encoded kubeconfig for K3s cluster
+# - TS_OAUTH_CLIENT_ID: Tailscale OAuth client ID
+# - TS_OAUTH_SECRET: Tailscale OAuth secret
+#
+# Required Variables:
+# - ENABLE_K3S_DEPLOY: Set to 'true' to enable automatic K3s deployment
 
 jobs:
   # ============================================
@@ -144,6 +152,49 @@ jobs:
             NEXT_PUBLIC_GLM_API_KEY=${{ secrets.NEXT_PUBLIC_GLM_API_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # ============================================
+  # Deploy to K3s (via Tailscale)
+  # ============================================
+  deploy-k3s:
+    runs-on: ubuntu-latest
+    needs: [build-api, build-web]
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && vars.ENABLE_K3S_DEPLOY == 'true'
+
+    steps:
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.29.0'
+
+      - name: Setup Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Configure kubectl for K3s
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Deploy API to K3s
+        run: |
+          kubectl rollout restart deployment/api -n lolambenhan
+          kubectl rollout status deployment/api -n lolambenhan --timeout=300s
+
+      - name: Deploy Web to K3s
+        run: |
+          kubectl rollout restart deployment/web -n lolambenhan
+          kubectl rollout status deployment/web -n lolambenhan --timeout=300s
+
+      - name: Verify deployments
+        run: |
+          echo "### K3s Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          kubectl get pods -n lolambenhan -o wide >> $GITHUB_STEP_SUMMARY
 
   # ============================================
   # Summary
