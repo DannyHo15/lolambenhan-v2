@@ -196,13 +196,13 @@ jobs:
 
       - name: Deploy API to K3s
         run: |
-          kubectl rollout restart deployment/api -n lolambenhan
-          kubectl rollout status deployment/api -n lolambenhan --timeout=300s
+          kubectl rollout restart deployment/lolambenhan-api -n $CLUSTER_NAME
+          kubectl rollout status deployment/lolambenhan-api -n $CLUSTER_NAME --timeout=300s
 
       - name: Deploy Web to K3s
         run: |
-          kubectl rollout restart deployment/web -n lolambenhan
-          kubectl rollout status deployment/web -n lolambenhan --timeout=300s
+          kubectl rollout restart deployment/lolambenhan-web -n $CLUSTER_NAME
+          kubectl rollout status deployment/lolambenhan-web -n $CLUSTER_NAME --timeout=300s
 
       - name: Verify deployments
         run: |
