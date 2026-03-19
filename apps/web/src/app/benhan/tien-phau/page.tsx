@@ -58,7 +58,10 @@ const TIEU_HOA_OPTIONS = [
 
 const THAN_OPTIONS = [
   { value: "", label: "-- Chọn --" },
-  { value: "Cầu bàng quang (-), chạm thận (-)", label: "Cầu bàng quang (-), chạm thận (-)" },
+  {
+    value: "Cầu bàng quang (-), chạm thận (-)",
+    label: "Cầu bàng quang (-), chạm thận (-)",
+  },
   {
     value:
       "- Hố thắt lưng không sưng nề\n- Cầu bàng quang (-), chạm thận (-), rung thận (-), điểm niệu quản (-)",
@@ -90,7 +93,17 @@ const CO_KHOP_OPTIONS = [
 ];
 
 export default function TienPhauPage() {
-  const { formData, calculated, updateField, resetForm, getExportData, lastSaved, clearSaved, tomtatCombined, setTomtatUser } = useMedicalForm({ persistenceKey: "tien-phau" });
+  const {
+    formData,
+    calculated,
+    updateField,
+    resetForm,
+    getExportData,
+    lastSaved,
+    clearSaved,
+    tomtatCombined,
+    setTomtatUser,
+  } = useMedicalForm({ persistenceKey: "tien-phau" });
   const [showPreview, setShowPreview] = useState(false);
   const [benhNgoaiKhoa, setBenhNgoaiKhoa] = useState("");
 
@@ -135,7 +148,10 @@ export default function TienPhauPage() {
     updateField(field as keyof typeof formData, value);
   };
 
-  const handleSelectToTextarea = (selectValue: string, textareaField: keyof typeof formData) => {
+  const handleSelectToTextarea = (
+    selectValue: string,
+    textareaField: keyof typeof formData,
+  ) => {
     updateField(textareaField, selectValue);
   };
 
@@ -152,16 +168,24 @@ export default function TienPhauPage() {
       <main className="max-w-5xl mx-auto">
         {/* Title */}
         <div className="text-center mb-8">
-          <h1 className="text-[32px] font-semibold text-foreground mb-2" style={{ letterSpacing: "-0.5px" }}>
+          <h1
+            className="text-[32px] font-semibold text-foreground mb-2"
+            style={{ letterSpacing: "-0.5px" }}
+          >
             Form BỆNH ÁN TIỀN PHẪU
           </h1>
           <p className="text-[15px] text-muted-foreground">
-            Nhập thông tin rồi nhấn <strong>XUẤT FILE WORD</strong> để lưu bệnh án hoàn chỉnh về máy.
+            Nhập thông tin rồi nhấn <strong>XUẤT FILE WORD</strong> để lưu bệnh
+            án hoàn chỉnh về máy.
           </p>
           {lastSaved && (
             <p className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center justify-center gap-1">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
               </svg>
               Đã lưu tự động {lastSaved.toLocaleTimeString("vi-VN")}
             </p>
@@ -169,7 +193,10 @@ export default function TienPhauPage() {
         </div>
 
         {/* Form */}
-        <form onSubmit={(e) => e.preventDefault()} className="form-container-glass">
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="form-container-glass"
+        >
           {/* A. PHẦN HÀNH CHÁNH */}
           <FormSection title="A. PHẦN HÀNH CHÁNH">
             <FormRow>
@@ -201,7 +228,9 @@ export default function TienPhauPage() {
                   placeholder="1980"
                   className="mb-1"
                 />
-                <p className="text-xs text-muted-foreground">Tuổi: {calculated.tuoi}</p>
+                <p className="text-xs text-muted-foreground">
+                  Tuổi: {calculated.tuoi}
+                </p>
               </div>
             </FormRow>
 
@@ -239,7 +268,9 @@ export default function TienPhauPage() {
           <FormSection title="B. PHẦN BỆNH ÁN">
             {/* I. Hỏi bệnh */}
             <div className="space-y-4 mb-6">
-              <h3 className="text-lg font-semibold text-foreground">I. Hỏi bệnh</h3>
+              <h3 className="text-lg font-semibold text-foreground">
+                I. Hỏi bệnh
+              </h3>
 
               <FormTextarea
                 id="lydo"
@@ -268,7 +299,9 @@ export default function TienPhauPage() {
 
             {/* II. KHÁM BỆNH */}
             <div className="space-y-4 mb-6">
-              <h3 className="text-lg font-semibold text-foreground">II. KHÁM BỆNH</h3>
+              <h3 className="text-lg font-semibold text-foreground">
+                II. KHÁM BỆNH
+              </h3>
 
               <div>
                 <label className="label-form">1. Toàn trạng</label>
@@ -313,7 +346,9 @@ export default function TienPhauPage() {
                 <label className="label-form">3. Các cơ quan</label>
                 <FormRow>
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-medium">a) Tuần hoàn:</label>
+                    <label className="text-xs text-muted-foreground font-medium">
+                      a) Tuần hoàn:
+                    </label>
                     <FormSelect
                       id="timmachSelect"
                       label=""
@@ -331,7 +366,9 @@ export default function TienPhauPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-medium">b) Hô hấp:</label>
+                    <label className="text-xs text-muted-foreground font-medium">
+                      b) Hô hấp:
+                    </label>
                     <FormSelect
                       id="hohapSelect"
                       label=""
@@ -349,7 +386,9 @@ export default function TienPhauPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-medium">c) Tiêu hoá:</label>
+                    <label className="text-xs text-muted-foreground font-medium">
+                      c) Tiêu hoá:
+                    </label>
                     <FormSelect
                       id="TieuhoaSelect"
                       label=""
@@ -369,7 +408,9 @@ export default function TienPhauPage() {
 
                 <FormRow className="mt-4">
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-medium">d) Thận - tiết niệu:</label>
+                    <label className="text-xs text-muted-foreground font-medium">
+                      d) Thận - tiết niệu:
+                    </label>
                     <FormSelect
                       id="thanSelect"
                       label=""
@@ -387,7 +428,9 @@ export default function TienPhauPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-medium">e) Thần kinh:</label>
+                    <label className="text-xs text-muted-foreground font-medium">
+                      e) Thần kinh:
+                    </label>
                     <FormSelect
                       id="thankinhSelect"
                       label=""
@@ -405,7 +448,9 @@ export default function TienPhauPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground font-medium">f) Cơ - Xương - Khớp:</label>
+                    <label className="text-xs text-muted-foreground font-medium">
+                      f) Cơ - Xương - Khớp:
+                    </label>
                     <FormSelect
                       id="cokhopSelect"
                       label=""
@@ -437,7 +482,9 @@ export default function TienPhauPage() {
 
             {/* III. KẾT LUẬN */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">III. KẾT LUẬN</h3>
+              <h3 className="text-lg font-semibold text-foreground">
+                III. KẾT LUẬN
+              </h3>
 
               <FormTextarea
                 id="tomtat"
@@ -464,10 +511,14 @@ export default function TienPhauPage() {
               />
 
               <div>
-                <label className="label-form">4. Đề nghị cận lâm sàng và kết quả</label>
+                <label className="label-form">
+                  4. Đề nghị cận lâm sàng và kết quả
+                </label>
                 <div className="mt-2 space-y-3">
                   <div>
-                    <label className="text-xs text-muted-foreground font-medium">a) Đề nghị cận lâm sàng</label>
+                    <label className="text-xs text-muted-foreground font-medium">
+                      a) Đề nghị cận lâm sàng
+                    </label>
                     <FormTextarea
                       id="cls_thuongquy"
                       label="- Thường quy"
@@ -486,7 +537,9 @@ export default function TienPhauPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground font-medium">b) Kết quả</label>
+                    <label className="text-xs text-muted-foreground font-medium">
+                      b) Kết quả
+                    </label>
                     <FormTextarea
                       id="ketqua"
                       label=""
@@ -550,9 +603,21 @@ export default function TienPhauPage() {
         </form>
       </main>
 
-      <PreviewModal isOpen={showPreview} onClose={() => setShowPreview(false)} htmlContent={previewHtml} />
+      <PreviewModal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        htmlContent={previewHtml}
+      />
 
-      <AiChatPanel formContext={{ tomtat: formData.tomtat || "", chandoanso: formData.chandoanso || "" }} />
+      <AiChatPanel
+        formContext={{
+          ...formData,
+          tomtat: formData.tomtat || "",
+          tuoi: calculated.tuoi,
+          bmi: calculated.bmi,
+          phanloai: calculated.phanloai,
+        }}
+      />
     </div>
   );
 }
