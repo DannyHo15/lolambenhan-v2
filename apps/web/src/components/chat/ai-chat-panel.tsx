@@ -59,7 +59,7 @@ Trả lời ngắn gọn, tập trung vào trường đó và đưa ra 2-3 gợi
 - Tham khảo dữ liệu bệnh án hiện tại nếu có
 - Luôn giải thích lý do cho các gợi ý`;
 
-const GLM_API_KEY = process.env.NEXT_PUBLIC_GLM_API_KEY || "";
+const OPENROUTER_API_KEY = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || "";
 
 // Field labels mapping for display
 const FIELD_LABELS: Record<string, string> = {
@@ -145,8 +145,8 @@ interface AiChatPanelProps {
 
 export function AiChatPanel({
   formContext,
-  apiUrl = "https://api.z.ai/api/coding/paas/v4/chat/completions",
-  apiKey = GLM_API_KEY,
+  apiUrl = "https://openrouter.ai/api/v1/chat/completions",
+  apiKey = OPENROUTER_API_KEY,
   onApplySuggestion,
 }: AiChatPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -174,11 +174,44 @@ export function AiChatPanel({
     const sections: string[] = ["\n## DỮ LIỆU BỆNH ÁN HIỆN TẠI:\n"];
 
     // Group fields by section
-    const hanhchinh = ["hoten", "gioitinh", "namsinh", "dantoc", "nghenghiep", "diachi", "ngaygio"];
+    const hanhchinh = [
+      "hoten",
+      "gioitinh",
+      "namsinh",
+      "dantoc",
+      "nghenghiep",
+      "diachi",
+      "ngaygio",
+    ];
     const hoibenh = ["lydo", "benhsu", "tiensu"];
-    const khamtongtrang = ["mach", "nhietdo", "ha_tren", "ha_duoi", "nhiptho", "chieucao", "cannang", "tongtrang"];
-    const coquan = ["timmach", "hopho", "tieuhoa", "than", "thankinh", "cokhop", "coquankhac"];
-    const ketluan = ["tomtat", "chandoanso", "chandoanpd", "chandoanxacdinh", "huongdieutri", "dieutri", "tienluong"];
+    const khamtongtrang = [
+      "mach",
+      "nhietdo",
+      "ha_tren",
+      "ha_duoi",
+      "nhiptho",
+      "chieucao",
+      "cannang",
+      "tongtrang",
+    ];
+    const coquan = [
+      "timmach",
+      "hopho",
+      "tieuhoa",
+      "than",
+      "thankinh",
+      "cokhop",
+      "coquankhac",
+    ];
+    const ketluan = [
+      "tomtat",
+      "chandoanso",
+      "chandoanpd",
+      "chandoanxacdinh",
+      "huongdieutri",
+      "dieutri",
+      "tienluong",
+    ];
 
     const formatFields = (fields: string[], title: string) => {
       const items = fields
@@ -197,7 +230,9 @@ export function AiChatPanel({
 
     sections.push(formatFields(hanhchinh, "A. Hành chính"));
     sections.push(formatFields(hoibenh, "B1. Hỏi bệnh"));
-    sections.push(formatFields(khamtongtrang, "B2. Toàn trạng & Dấu hiệu sinh tồn"));
+    sections.push(
+      formatFields(khamtongtrang, "B2. Toàn trạng & Dấu hiệu sinh tồn"),
+    );
     sections.push(formatFields(coquan, "B3. Khám các cơ quan"));
     sections.push(formatFields(ketluan, "C. Kết luận"));
 
@@ -215,7 +250,7 @@ export function AiChatPanel({
           id: generateMessageId(),
           role: "assistant",
           content:
-            "⚠️ Lỗi: Chưa cấu hình API Key. Vui lòng thêm NEXT_PUBLIC_GLM_API_KEY vào file .env.local",
+            "⚠️ Lỗi: Chưa cấu hình API Key. Vui lòng thêm NEXT_PUBLIC_OPENROUTER_API_KEY vào file .env.local",
         },
       ]);
       return;
@@ -229,7 +264,10 @@ export function AiChatPanel({
       userContent = `${formContextStr}\n\n---\n\n**Yêu cầu:** ${text}`;
     }
 
-    setMessages((prev) => [...prev, { id: generateMessageId(), role: "user", content: text }]);
+    setMessages((prev) => [
+      ...prev,
+      { id: generateMessageId(), role: "user", content: text },
+    ]);
     setInput("");
     setIsLoading(true);
     setStreamingMessage("");
@@ -246,7 +284,7 @@ export function AiChatPanel({
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "glm-4.7",
+          model: "arcee-ai/trinity-large-preview:free",
           messages: [...messages, { role: "user", content: userContent }],
           temperature: 1.0,
           stream: true,
@@ -267,10 +305,37 @@ export function AiChatPanel({
       }
 
       let fullContent = "";
+      let finalChunkProcessed = false;
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+
+        // Check if this is the last chunk
+        if (done) {
+          // Decode any remaining bytes without stream mode to flush
+          const remaining = decoder.decode(undefined, { stream: false });
+          if (remaining) {
+            const lines = remaining.split("\n");
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                const data = line.slice(6).trim();
+                if (data === "[DONE]") continue;
+
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed?.choices?.[0]?.delta?.content || "";
+                  if (content) {
+                    fullContent += content;
+                    setStreamingMessage(fullContent);
+                  }
+                } catch {
+                  // Skip invalid JSON
+                }
+              }
+            }
+          }
+          break;
+        }
 
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split("\n");
@@ -297,7 +362,11 @@ export function AiChatPanel({
       // Add complete message to history
       setMessages((prev) => [
         ...prev,
-        { id: generateMessageId(), role: "assistant", content: fullContent || "Bot không trả lời." },
+        {
+          id: generateMessageId(),
+          role: "assistant",
+          content: fullContent || "Bot không trả lời.",
+        },
       ]);
       setStreamingMessage("");
     } catch (error) {
@@ -317,7 +386,15 @@ export function AiChatPanel({
       setIsLoading(false);
       abortControllerRef.current = null;
     }
-  }, [input, formContext, messages, apiKey, apiUrl, isLoading, buildFormContextString]);
+  }, [
+    input,
+    formContext,
+    messages,
+    apiKey,
+    apiUrl,
+    isLoading,
+    buildFormContextString,
+  ]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -337,7 +414,10 @@ export function AiChatPanel({
   const handleQuickAction = (action: string) => {
     setInput(action);
     setTimeout(() => {
-      const event = new KeyboardEvent("keydown", { key: "Enter", bubbles: true });
+      const event = new KeyboardEvent("keydown", {
+        key: "Enter",
+        bubbles: true,
+      });
       document.activeElement?.dispatchEvent(event);
     }, 100);
   };
@@ -381,7 +461,11 @@ export function AiChatPanel({
               variant="outline"
               size="sm"
               className="text-xs h-7"
-              onClick={() => handleQuickAction("Gợi ý toàn bộ bệnh án dựa trên thông tin đã nhập")}
+              onClick={() =>
+                handleQuickAction(
+                  "Gợi ý toàn bộ bệnh án dựa trên thông tin đã nhập",
+                )
+              }
               disabled={isLoading}
             >
               <Sparkles className="h-3 w-3 mr-1" />
@@ -391,7 +475,11 @@ export function AiChatPanel({
               variant="outline"
               size="sm"
               className="text-xs h-7"
-              onClick={() => handleQuickAction("Gợi ý chẩn đoán sơ bộ và chẩn đoán phân biệt")}
+              onClick={() =>
+                handleQuickAction(
+                  "Gợi ý chẩn đoán sơ bộ và chẩn đoán phân biệt",
+                )
+              }
               disabled={isLoading}
             >
               <FileText className="h-3 w-3 mr-1" />
@@ -401,7 +489,9 @@ export function AiChatPanel({
               variant="outline"
               size="sm"
               className="text-xs h-7"
-              onClick={() => handleQuickAction("Gợi ý hướng điều trị và tiên lượng")}
+              onClick={() =>
+                handleQuickAction("Gợi ý hướng điều trị và tiên lượng")
+              }
               disabled={isLoading}
             >
               <FileText className="h-3 w-3 mr-1" />
@@ -426,7 +516,9 @@ export function AiChatPanel({
                     <div
                       className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2"
                       dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(marked.parse(msg.content) as string),
+                        __html: DOMPurify.sanitize(
+                          marked.parse(msg.content) as string,
+                        ),
                       }}
                     />
                   ) : (
@@ -440,7 +532,9 @@ export function AiChatPanel({
                 <div
                   className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2"
                   dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(marked.parse(streamingMessage) as string),
+                    __html: DOMPurify.sanitize(
+                      marked.parse(streamingMessage) as string,
+                    ),
                   }}
                 />
                 <span className="inline-flex gap-1 ml-2">
